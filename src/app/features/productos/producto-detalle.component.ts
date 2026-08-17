@@ -14,6 +14,7 @@ import { Producto } from '../../core/models/producto.model';
 import { Proveedor } from '../../core/models/proveedor.model';
 import { PrecioProveedor } from '../../core/models/precio.model';
 import { PrecioFormDialogComponent } from './precio-form-dialog.component';
+import { ProductoFormDialogComponent } from './producto-form-dialog.component';
 
 @Component({
   selector: 'app-producto-detalle',
@@ -78,6 +79,31 @@ export class ProductoDetalleComponent implements OnInit {
         },
         error: (error) => {
           const mensaje = error?.error?.mensaje ?? 'No se pudo registrar el precio.';
+          this.snackBar.open(mensaje, 'Cerrar', { duration: 4000 });
+        }
+      });
+    });
+  }
+
+  abrirDialogoEditar(producto: Producto): void {
+    const dialogRef = this.dialog.open(ProductoFormDialogComponent, {
+      width: '28rem',
+      autoFocus: 'dialog',
+      data: { producto }
+    });
+
+    dialogRef.afterOpened().subscribe(() => window.dispatchEvent(new Event('resize')));
+
+    dialogRef.afterClosed().subscribe((resultado) => {
+      if (!resultado) return;
+
+      this.productoService.actualizar(producto.id, resultado).subscribe({
+        next: (actualizado) => {
+          this.producto.set(actualizado);
+          this.snackBar.open('Producto actualizado', 'Cerrar', { duration: 3000 });
+        },
+        error: (error) => {
+          const mensaje = error?.error?.mensaje ?? 'No se pudo actualizar el producto.';
           this.snackBar.open(mensaje, 'Cerrar', { duration: 4000 });
         }
       });

@@ -22,7 +22,7 @@ export interface RegistrarPrecio {
 
 export interface AlertaPrecio {
   productoId: number;
-  productoCodigo: string;
+  productoCodigo: string | null;
   productoNombre: string;
   proveedorId: number;
   proveedorNombre: string;

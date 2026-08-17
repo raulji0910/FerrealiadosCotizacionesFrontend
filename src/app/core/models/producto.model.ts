@@ -1,6 +1,6 @@
 export interface Producto {
   id: number;
-  codigo: string;
+  codigo: string | null;
   nombre: string;
   descripcion: string | null;
   unidadMedida: string | null;
@@ -9,13 +9,14 @@ export interface Producto {
 }
 
 export interface ProductoCrear {
-  codigo: string;
+  codigo: string | null;
   nombre: string;
   descripcion: string | null;
   unidadMedida: string | null;
 }
 
 export interface ProductoActualizar {
+  codigo: string | null;
   nombre: string;
   descripcion: string | null;
   unidadMedida: string | null;

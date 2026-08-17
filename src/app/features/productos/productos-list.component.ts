@@ -78,7 +78,11 @@ export class ProductosListComponent implements OnInit {
   }
 
   abrirNuevo(): void {
-    const dialogRef = this.dialog.open(ProductoFormDialogComponent, { width: '28rem', autoFocus: 'dialog' });
+    const dialogRef = this.dialog.open(ProductoFormDialogComponent, {
+      width: '28rem',
+      autoFocus: 'dialog',
+      data: { producto: null }
+    });
 
     // Ver comentario equivalente en proveedores-list.component.ts.
     dialogRef.afterOpened().subscribe(() => window.dispatchEvent(new Event('resize')));

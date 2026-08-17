@@ -8,12 +8,18 @@
     <div class="detalle__header">
       <div>
         <h2>{{ p.nombre }}</h2>
-        <span class="detalle__codigo">Código: {{ p.codigo }}</span>
+        <span class="detalle__codigo">Código: {{ p.codigo || '(sin asignar)' }}</span>
       </div>
-      <button mat-flat-button color="primary" (click)="abrirDialogoPrecio()">
-        <mat-icon>add</mat-icon>
-        Registrar cotización
-      </button>
+      <div class="detalle__acciones">
+        <button mat-button (click)="abrirDialogoEditar(p)">
+          <mat-icon>edit</mat-icon>
+          Editar
+        </button>
+        <button mat-flat-button color="primary" (click)="abrirDialogoPrecio()">
+          <mat-icon>add</mat-icon>
+          Registrar cotización
+        </button>
+      </div>
     </div>
   }
 

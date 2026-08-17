@@ -20,7 +20,7 @@
   <table mat-table [dataSource]="productos()" class="tabla-responsiva">
     <ng-container matColumnDef="codigo">
       <th mat-header-cell *matHeaderCellDef>Código</th>
-      <td mat-cell *matCellDef="let producto" data-label="Código">{{ producto.codigo }}</td>
+      <td mat-cell *matCellDef="let producto" data-label="Código">{{ producto.codigo || '—' }}</td>
     </ng-container>
 
     <ng-container matColumnDef="nombre">
