@@ -1,0 +1,24 @@
+<div class="configuracion">
+  <h2>Configuración</h2>
+
+  <mat-card class="configuracion__tarjeta">
+    <mat-card-header>
+      <mat-card-title>Vigencia de precios</mat-card-title>
+    </mat-card-header>
+
+    <mat-card-content>
+      <p class="configuracion__ayuda">
+        Cantidad de meses tras los cuales un precio cotizado por un proveedor se considera desactualizado y se marca como vencido.
+      </p>
+
+      <mat-form-field appearance="outline" class="configuracion__campo">
+        <mat-label>Meses de vigencia</mat-label>
+        <input matInput type="number" min="1" [(ngModel)]="mesesVigenciaPrecio" name="meses" />
+      </mat-form-field>
+
+      <button mat-flat-button color="primary" [disabled]="guardando()" (click)="guardar()">
+        {{ guardando() ? 'Guardando...' : 'Guardar' }}
+      </button>
+    </mat-card-content>
+  </mat-card>
+</div>

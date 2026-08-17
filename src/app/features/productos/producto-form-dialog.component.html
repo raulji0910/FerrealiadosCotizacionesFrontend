@@ -1,0 +1,28 @@
+<h2 mat-dialog-title>Nuevo producto</h2>
+
+<mat-dialog-content class="dialogo-form">
+  <mat-form-field appearance="outline" class="dialogo-form__campo">
+    <mat-label>Código</mat-label>
+    <input matInput [(ngModel)]="producto.codigo" name="codigo" required />
+  </mat-form-field>
+
+  <mat-form-field appearance="outline" class="dialogo-form__campo">
+    <mat-label>Nombre</mat-label>
+    <input matInput [(ngModel)]="producto.nombre" name="nombre" required />
+  </mat-form-field>
+
+  <mat-form-field appearance="outline" class="dialogo-form__campo">
+    <mat-label>Unidad de medida</mat-label>
+    <input matInput [(ngModel)]="producto.unidadMedida" name="unidad" />
+  </mat-form-field>
+
+  <mat-form-field appearance="outline" class="dialogo-form__campo">
+    <mat-label>Descripción</mat-label>
+    <input matInput [(ngModel)]="producto.descripcion" name="descripcion" />
+  </mat-form-field>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="cancelar()">Cancelar</button>
+  <button mat-flat-button color="primary" (click)="guardar()">Guardar</button>
+</mat-dialog-actions>

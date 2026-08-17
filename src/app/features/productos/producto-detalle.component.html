@@ -1,0 +1,86 @@
+<div class="detalle">
+  <button mat-button (click)="volver()" class="detalle__volver">
+    <mat-icon>arrow_back</mat-icon>
+    Productos
+  </button>
+
+  @if (producto(); as p) {
+    <div class="detalle__header">
+      <div>
+        <h2>{{ p.nombre }}</h2>
+        <span class="detalle__codigo">Código: {{ p.codigo }}</span>
+        @if (p.unidadMedida) {
+          <span class="detalle__codigo"> · Unidad: {{ p.unidadMedida }}</span>
+        }
+      </div>
+      <button mat-flat-button color="primary" (click)="abrirDialogoPrecio()">
+        <mat-icon>add</mat-icon>
+        Registrar cotización
+      </button>
+    </div>
+  }
+
+  @if (cargando()) {
+    <mat-progress-bar mode="indeterminate" />
+  }
+
+  <table mat-table [dataSource]="precios()" class="tabla-responsiva">
+    <ng-container matColumnDef="proveedor">
+      <th mat-header-cell *matHeaderCellDef>Proveedor</th>
+      <td mat-cell *matCellDef="let precio" data-label="Proveedor">
+        {{ precio.proveedorNombre }}
+        @if (precio.esMejorPrecio) {
+          <mat-chip class="detalle__chip-mejor">Mejor precio</mat-chip>
+        }
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="costo">
+      <th mat-header-cell *matHeaderCellDef>Costo</th>
+      <td mat-cell *matCellDef="let precio" data-label="Costo">{{ precio.costoBase | currency: 'COP' : 'symbol' : '1.0-0' }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="costoConPorcentaje">
+      <th mat-header-cell *matHeaderCellDef>Costo con porcentaje</th>
+      <td mat-cell *matCellDef="let precio" data-label="Costo con porcentaje">
+        {{ precio.costo | currency: 'COP' : 'symbol' : '1.0-0' }}
+        @if (precio.porcentajeAjuste !== 0) {
+          <span class="detalle__costo-ajuste">
+            ({{ precio.porcentajeAjuste > 0 ? '+' : '' }}{{ precio.porcentajeAjuste }}%)
+          </span>
+        }
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="fecha">
+      <th mat-header-cell *matHeaderCellDef>Fecha cotización</th>
+      <td mat-cell *matCellDef="let precio" data-label="Fecha cotización">{{ precio.fechaCotizacion | date: 'dd/MM/yyyy' }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="dias">
+      <th mat-header-cell *matHeaderCellDef>Días</th>
+      <td mat-cell *matCellDef="let precio" data-label="Días">{{ precio.diasDesdeCotizacion }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="estado">
+      <th mat-header-cell *matHeaderCellDef>Estado</th>
+      <td mat-cell *matCellDef="let precio" data-label="Estado">
+        <mat-chip [class.detalle__chip--vencido]="precio.vencido" [class.detalle__chip--vigente]="!precio.vencido">
+          {{ precio.vencido ? 'Vencido' : 'Vigente' }}
+        </mat-chip>
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="columnas"></tr>
+    <tr
+      mat-row
+      *matRowDef="let precio; columns: columnas"
+      [class.detalle__fila--vencida]="precio.vencido"
+      [class.detalle__fila--mejor]="precio.esMejorPrecio"
+    ></tr>
+
+    <tr class="detalle__vacio-fila" *matNoDataRow>
+      <td [attr.colspan]="columnas.length" class="detalle__vacio">Aún no hay precios cotizados para este producto.</td>
+    </tr>
+  </table>
+</div>

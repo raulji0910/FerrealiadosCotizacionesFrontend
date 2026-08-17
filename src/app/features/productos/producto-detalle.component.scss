@@ -1,0 +1,66 @@
+.detalle {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+
+  &__volver {
+    align-self: flex-start;
+  }
+
+  &__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+
+    h2 {
+      margin: 0 0 0.25rem;
+    }
+  }
+
+  &__codigo {
+    font-size: 0.85rem;
+    color: var(--mat-sys-on-surface-variant);
+  }
+
+  &__vacio {
+    text-align: center;
+    padding: 1.5rem;
+    color: var(--mat-sys-on-surface-variant);
+  }
+
+  &__fila--vencida {
+    background: color-mix(in srgb, var(--mat-sys-error) 8%, transparent);
+  }
+
+  &__fila--mejor {
+    border-left: 3px solid var(--mat-sys-tertiary);
+  }
+
+  &__chip-mejor {
+    margin-left: 0.5rem;
+    --mat-chip-label-text-color: var(--mat-sys-on-tertiary-container);
+    background-color: var(--mat-sys-tertiary-container);
+  }
+
+  &__chip--vigente {
+    --mat-chip-label-text-color: var(--mat-sys-on-tertiary-container);
+    background-color: var(--mat-sys-tertiary-container);
+  }
+
+  &__chip--vencido {
+    --mat-chip-label-text-color: var(--mat-sys-on-error-container);
+    background-color: var(--mat-sys-error-container);
+  }
+
+  &__costo-ajuste {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--mat-sys-on-surface-variant);
+  }
+}
+
+table {
+  width: 100%;
+}

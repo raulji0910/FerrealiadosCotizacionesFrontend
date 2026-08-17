@@ -1,0 +1,57 @@
+<h2 mat-dialog-title>Registrar cotización de proveedor</h2>
+
+<mat-dialog-content class="dialogo-form">
+  <mat-form-field appearance="outline" class="dialogo-form__campo">
+    <mat-label>Proveedor</mat-label>
+    <input
+      matInput
+      [(ngModel)]="proveedorSeleccionado"
+      (ngModelChange)="alEscribirProveedor($event)"
+      name="proveedor"
+      [matAutocomplete]="autocompletadoProveedor"
+      required
+    />
+    <mat-autocomplete #autocompletadoProveedor="matAutocomplete" [displayWith]="mostrarNombreProveedor">
+      @for (proveedor of proveedoresFiltrados(); track proveedor.id) {
+        <mat-option [value]="proveedor">{{ proveedor.nombre }}</mat-option>
+      }
+    </mat-autocomplete>
+  </mat-form-field>
+
+  <mat-form-field appearance="outline" class="dialogo-form__campo">
+    <mat-label>Costo sin IVA</mat-label>
+    <input matInput type="number" [(ngModel)]="costo" name="costo" required />
+    <span matTextPrefix>$&nbsp;</span>
+  </mat-form-field>
+
+  <div class="dialogo-form__campo dialogo-form__ajuste">
+    <span class="dialogo-form__ajuste-label">
+      Ajuste sobre el costo: {{ formatearPorcentaje(porcentajeAjuste) }}
+    </span>
+    <mat-slider min="-100" max="100" step="1" discrete [displayWith]="formatearPorcentaje">
+      <input matSliderThumb [(ngModel)]="porcentajeAjuste" name="porcentajeAjuste" />
+    </mat-slider>
+    @if (costoFinal !== null) {
+      <span class="dialogo-form__ajuste-resultado">
+        Costo con ajuste: {{ costoFinal | currency: 'COP' : 'symbol' : '1.0-0' }}
+      </span>
+    }
+  </div>
+
+  <mat-form-field appearance="outline" class="dialogo-form__campo">
+    <mat-label>Fecha de cotización</mat-label>
+    <input matInput [matDatepicker]="picker" [(ngModel)]="fecha" name="fecha" required />
+    <mat-datepicker-toggle matSuffix [for]="picker" />
+    <mat-datepicker #picker />
+  </mat-form-field>
+
+  <mat-form-field appearance="outline" class="dialogo-form__campo">
+    <mat-label>Observaciones</mat-label>
+    <input matInput [(ngModel)]="observaciones" name="observaciones" />
+  </mat-form-field>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="cancelar()">Cancelar</button>
+  <button mat-flat-button color="primary" (click)="guardar()">Guardar</button>
+</mat-dialog-actions>
