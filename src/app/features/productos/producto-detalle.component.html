@@ -9,9 +9,6 @@
       <div>
         <h2>{{ p.nombre }}</h2>
         <span class="detalle__codigo">Código: {{ p.codigo }}</span>
-        @if (p.unidadMedida) {
-          <span class="detalle__codigo"> · Unidad: {{ p.unidadMedida }}</span>
-        }
       </div>
       <button mat-flat-button color="primary" (click)="abrirDialogoPrecio()">
         <mat-icon>add</mat-icon>

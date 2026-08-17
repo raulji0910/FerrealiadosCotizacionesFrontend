@@ -25,12 +25,19 @@
   </mat-form-field>
 
   <div class="dialogo-form__campo dialogo-form__ajuste">
-    <span class="dialogo-form__ajuste-label">
-      Ajuste sobre el costo: {{ formatearPorcentaje(porcentajeAjuste) }}
-    </span>
-    <mat-slider min="-100" max="100" step="1" discrete [displayWith]="formatearPorcentaje">
-      <input matSliderThumb [(ngModel)]="porcentajeAjuste" name="porcentajeAjuste" />
-    </mat-slider>
+    <mat-form-field appearance="outline" class="dialogo-form__campo">
+      <mat-label>Ajuste sobre el costo</mat-label>
+      <input
+        matInput
+        type="number"
+        [(ngModel)]="porcentajeAjuste"
+        name="porcentajeAjuste"
+        min="-100"
+        max="100"
+        step="1"
+      />
+      <span matTextSuffix>%</span>
+    </mat-form-field>
     @if (costoFinal !== null) {
       <span class="dialogo-form__ajuste-resultado">
         Costo con ajuste: {{ costoFinal | currency: 'COP' : 'symbol' : '1.0-0' }}

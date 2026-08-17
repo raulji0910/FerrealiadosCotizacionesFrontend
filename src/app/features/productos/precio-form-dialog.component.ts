@@ -7,7 +7,6 @@ import { MatInputModule } from '@angular/material/input';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatButtonModule } from '@angular/material/button';
-import { MatSliderModule } from '@angular/material/slider';
 import { Proveedor } from '../../core/models/proveedor.model';
 import { RegistrarPrecio } from '../../core/models/precio.model';
 
@@ -28,7 +27,6 @@ const MAXIMO_SUGERENCIAS = 50;
     MatAutocompleteModule,
     MatDatepickerModule,
     MatButtonModule,
-    MatSliderModule,
     CurrencyPipe
   ],
   templateUrl: './precio-form-dialog.component.html'
@@ -65,8 +63,6 @@ export class PrecioFormDialogComponent {
     if (this.costo === null) return null;
     return Math.round(this.costo * (1 + this.porcentajeAjuste / 100) * 100) / 100;
   }
-
-  formatearPorcentaje = (valor: number): string => (valor > 0 ? `+${valor}%` : `${valor}%`);
 
   guardar(): void {
     const proveedorId = this.proveedorSeleccionado && typeof this.proveedorSeleccionado !== 'string'
