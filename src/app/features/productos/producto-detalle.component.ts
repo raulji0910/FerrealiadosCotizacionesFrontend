@@ -1,5 +1,6 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -19,7 +20,7 @@ import { ProductoFormDialogComponent } from './producto-form-dialog.component';
 @Component({
   selector: 'app-producto-detalle',
   standalone: true,
-  imports: [MatTableModule, MatButtonModule, MatIconModule, MatChipsModule, MatProgressBarModule, CurrencyPipe, DatePipe],
+  imports: [FormsModule, MatTableModule, MatButtonModule, MatIconModule, MatChipsModule, MatProgressBarModule, CurrencyPipe, DatePipe],
   templateUrl: './producto-detalle.component.html',
   styleUrl: './producto-detalle.component.scss'
 })
@@ -89,7 +90,7 @@ export class ProductoDetalleComponent implements OnInit {
     const dialogRef = this.dialog.open(ProductoFormDialogComponent, {
       width: '28rem',
       autoFocus: 'dialog',
-      data: { producto }
+      data: { producto, proveedores: this.proveedores() }
     });
 
     dialogRef.afterOpened().subscribe(() => window.dispatchEvent(new Event('resize')));
@@ -97,7 +98,7 @@ export class ProductoDetalleComponent implements OnInit {
     dialogRef.afterClosed().subscribe((resultado) => {
       if (!resultado) return;
 
-      this.productoService.actualizar(producto.id, resultado).subscribe({
+      this.productoService.actualizar(producto.id, resultado.producto).subscribe({
         next: (actualizado) => {
           this.producto.set(actualizado);
           this.snackBar.open('Producto actualizado', 'Cerrar', { duration: 3000 });
@@ -107,6 +108,31 @@ export class ProductoDetalleComponent implements OnInit {
           this.snackBar.open(mensaje, 'Cerrar', { duration: 4000 });
         }
       });
+    });
+  }
+
+  // Vista previa inmediata mientras se escribe; el guardado real ocurre al salir del campo.
+  costoConPorcentajePreview(precio: PrecioProveedor): number {
+    return Math.round(precio.costoBase * (1 + precio.porcentajeAjuste / 100) * 100) / 100;
+  }
+
+  onCambioPorcentajeLocal(precio: PrecioProveedor, valor: number): void {
+    precio.porcentajeAjuste = valor;
+  }
+
+  guardarPorcentaje(precio: PrecioProveedor): void {
+    const valor = Math.max(-100, Math.min(100, Math.round(precio.porcentajeAjuste)));
+    precio.porcentajeAjuste = valor;
+
+    this.productoService.actualizarPorcentajePrecio(this.productoId, precio.precioId, valor).subscribe({
+      next: (resultado) => {
+        precio.costo = resultado.costo;
+        precio.porcentajeAjuste = resultado.porcentajeAjuste;
+      },
+      error: (error) => {
+        const mensaje = error?.error?.mensaje ?? 'No se pudo actualizar el porcentaje.';
+        this.snackBar.open(mensaje, 'Cerrar', { duration: 4000 });
+      }
     });
   }
 

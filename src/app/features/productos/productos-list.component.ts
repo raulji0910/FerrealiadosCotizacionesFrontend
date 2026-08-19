@@ -13,7 +13,9 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { DatePipe } from '@angular/common';
 import { ProductoService } from '../../core/services/producto.service';
+import { ProveedorService } from '../../core/services/proveedor.service';
 import { Producto } from '../../core/models/producto.model';
+import { Proveedor } from '../../core/models/proveedor.model';
 import { ProductoFormDialogComponent } from './producto-form-dialog.component';
 
 @Component({
@@ -37,6 +39,7 @@ import { ProductoFormDialogComponent } from './producto-form-dialog.component';
 export class ProductosListComponent implements OnInit {
   readonly columnas = ['codigo', 'nombre', 'ultimaFechaCotizacion', 'estado', 'acciones'];
   readonly productos = signal<Producto[]>([]);
+  readonly proveedores = signal<Proveedor[]>([]);
   readonly total = signal(0);
   readonly pageIndex = signal(0);
   readonly pageSize = signal(10);
@@ -45,6 +48,7 @@ export class ProductosListComponent implements OnInit {
 
   constructor(
     private readonly productoService: ProductoService,
+    private readonly proveedorService: ProveedorService,
     private readonly router: Router,
     private readonly dialog: MatDialog,
     private readonly snackBar: MatSnackBar
@@ -52,6 +56,7 @@ export class ProductosListComponent implements OnInit {
 
   ngOnInit(): void {
     this.buscar();
+    this.proveedorService.listarActivos().subscribe((proveedores) => this.proveedores.set(proveedores));
   }
 
   buscar(): void {
@@ -81,7 +86,7 @@ export class ProductosListComponent implements OnInit {
     const dialogRef = this.dialog.open(ProductoFormDialogComponent, {
       width: '28rem',
       autoFocus: 'dialog',
-      data: { producto: null }
+      data: { producto: null, proveedores: this.proveedores() }
     });
 
     // Ver comentario equivalente en proveedores-list.component.ts.
@@ -90,10 +95,33 @@ export class ProductosListComponent implements OnInit {
     dialogRef.afterClosed().subscribe((resultado) => {
       if (!resultado) return;
 
-      this.productoService.crear(resultado).subscribe({
+      this.productoService.crear(resultado.producto).subscribe({
         next: (creado) => {
-          this.snackBar.open(`Producto "${creado.nombre}" creado`, 'Cerrar', { duration: 3000 });
-          this.buscar();
+          if (!resultado.precioInicial) {
+            this.snackBar.open(`Producto "${creado.nombre}" creado`, 'Cerrar', { duration: 3000 });
+            this.buscar();
+            return;
+          }
+
+          this.productoService
+            .registrarPrecio(creado.id, {
+              proveedorId: resultado.precioInicial.proveedorId,
+              costo: resultado.precioInicial.costo,
+              porcentajeAjuste: 0,
+              fechaCotizacion: this.fechaHoyIso(),
+              observaciones: null,
+              creadoPor: null
+            })
+            .subscribe({
+              next: () => {
+                this.snackBar.open(`Producto "${creado.nombre}" creado`, 'Cerrar', { duration: 3000 });
+                this.router.navigate(['/productos', creado.id]);
+              },
+              error: () => {
+                this.snackBar.open('Producto creado, pero no se pudo registrar el precio inicial', 'Cerrar', { duration: 4000 });
+                this.router.navigate(['/productos', creado.id]);
+              }
+            });
         },
         error: (error) => {
           const mensaje = error?.error?.mensaje ?? 'No se pudo crear el producto.';
@@ -105,5 +133,13 @@ export class ProductosListComponent implements OnInit {
 
   verDetalle(producto: Producto): void {
     this.router.navigate(['/productos', producto.id]);
+  }
+
+  private fechaHoyIso(): string {
+    const hoy = new Date();
+    const anio = hoy.getFullYear();
+    const mes = String(hoy.getMonth() + 1).padStart(2, '0');
+    const dia = String(hoy.getDate()).padStart(2, '0');
+    return `${anio}-${mes}-${dia}`;
   }
 }

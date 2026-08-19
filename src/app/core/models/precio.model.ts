@@ -20,6 +20,12 @@ export interface RegistrarPrecio {
   creadoPor: string | null;
 }
 
+export interface PrecioActualizado {
+  precioId: number;
+  costo: number;
+  porcentajeAjuste: number;
+}
+
 export interface AlertaPrecio {
   productoId: number;
   productoCodigo: string | null;

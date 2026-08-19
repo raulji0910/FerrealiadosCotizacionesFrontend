@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { Producto, ProductoActualizar, ProductoCrear } from '../models/producto.model';
-import { PrecioProveedor, RegistrarPrecio } from '../models/precio.model';
+import { PrecioActualizado, PrecioProveedor, RegistrarPrecio } from '../models/precio.model';
 import { PaginaResultado } from '../models/pagina.model';
 
 @Injectable({ providedIn: 'root' })
@@ -36,5 +36,9 @@ export class ProductoService {
 
   registrarPrecio(id: number, dto: RegistrarPrecio): Observable<PrecioProveedor> {
     return this.http.post<PrecioProveedor>(`${this.baseUrl}/${id}/precios`, dto);
+  }
+
+  actualizarPorcentajePrecio(productoId: number, precioId: number, porcentajeAjuste: number): Observable<PrecioActualizado> {
+    return this.http.put<PrecioActualizado>(`${this.baseUrl}/${productoId}/precios/${precioId}`, { porcentajeAjuste });
   }
 }

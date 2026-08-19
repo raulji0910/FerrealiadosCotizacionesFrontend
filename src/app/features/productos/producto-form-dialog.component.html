@@ -16,6 +16,32 @@
     <mat-label>Descripción</mat-label>
     <input matInput [(ngModel)]="producto.descripcion" name="descripcion" />
   </mat-form-field>
+
+  @if (!editando) {
+    <p class="dialogo-form__nota">Opcional: registra de una vez el primer precio cotizado</p>
+
+    <mat-form-field appearance="outline" class="dialogo-form__campo">
+      <mat-label>Proveedor</mat-label>
+      <input
+        matInput
+        [(ngModel)]="proveedorSeleccionado"
+        (ngModelChange)="alEscribirProveedor($event)"
+        name="proveedor"
+        [matAutocomplete]="autocompletadoProveedor"
+      />
+      <mat-autocomplete #autocompletadoProveedor="matAutocomplete" [displayWith]="mostrarNombreProveedor">
+        @for (proveedor of proveedoresFiltrados(); track proveedor.id) {
+          <mat-option [value]="proveedor">{{ proveedor.nombre }}</mat-option>
+        }
+      </mat-autocomplete>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="dialogo-form__campo">
+      <mat-label>Costo sin IVA</mat-label>
+      <input matInput type="number" [(ngModel)]="costo" name="costo" />
+      <span matTextPrefix>$&nbsp;</span>
+    </mat-form-field>
+  }
 </mat-dialog-content>
 
 <mat-dialog-actions align="end">

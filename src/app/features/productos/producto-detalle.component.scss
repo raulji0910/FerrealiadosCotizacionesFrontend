@@ -60,10 +60,26 @@
     background-color: var(--mat-sys-error-container);
   }
 
-  &__costo-ajuste {
-    display: block;
-    font-size: 0.75rem;
-    color: var(--mat-sys-on-surface-variant);
+  &__ajuste-inline {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    flex-wrap: wrap;
+  }
+
+  &__ajuste-input {
+    width: 3.5rem;
+    padding: 0.15rem 0.35rem;
+    border: 1px solid var(--mat-sys-outline);
+    border-radius: 4px;
+    font: inherit;
+    color: inherit;
+    background: transparent;
+
+    &:focus {
+      outline: none;
+      border-color: var(--mat-sys-primary);
+    }
   }
 }
 

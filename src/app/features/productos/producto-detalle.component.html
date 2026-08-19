@@ -46,12 +46,22 @@
     <ng-container matColumnDef="costoConPorcentaje">
       <th mat-header-cell *matHeaderCellDef>Costo con porcentaje</th>
       <td mat-cell *matCellDef="let precio" data-label="Costo con porcentaje">
-        {{ precio.costo | currency: 'COP' : 'symbol' : '1.0-0' }}
-        @if (precio.porcentajeAjuste !== 0) {
-          <span class="detalle__costo-ajuste">
-            ({{ precio.porcentajeAjuste > 0 ? '+' : '' }}{{ precio.porcentajeAjuste }}%)
-          </span>
-        }
+        <div class="detalle__ajuste-inline">
+          <span>{{ costoConPorcentajePreview(precio) | currency: 'COP' : 'symbol' : '1.0-0' }}</span>
+          <input
+            type="number"
+            class="detalle__ajuste-input"
+            min="-100"
+            max="100"
+            step="1"
+            [ngModel]="precio.porcentajeAjuste"
+            (ngModelChange)="onCambioPorcentajeLocal(precio, $event)"
+            (blur)="guardarPorcentaje(precio)"
+            (keydown.enter)="guardarPorcentaje(precio); ajusteInput.blur()"
+            #ajusteInput
+          />
+          <span>%</span>
+        </div>
       </td>
     </ng-container>
 
