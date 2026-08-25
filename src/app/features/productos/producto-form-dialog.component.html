@@ -38,9 +38,26 @@
 
     <mat-form-field appearance="outline" class="dialogo-form__campo">
       <mat-label>Costo sin IVA</mat-label>
-      <input matInput type="number" [(ngModel)]="costo" name="costo" />
+      <input matInput type="number" [(ngModel)]="costo" name="costo" (ngModelChange)="onCambioCosto()" />
       <span matTextPrefix>$&nbsp;</span>
     </mat-form-field>
+
+    <div class="dialogo-form__campo dialogo-form__iva">
+      <mat-form-field appearance="outline" class="dialogo-form__iva-costo">
+        <mat-label>Costo con IVA</mat-label>
+        <input matInput type="number" [(ngModel)]="costoConIva" name="costoConIva" (ngModelChange)="onCambioCostoConIva()" />
+        <span matTextPrefix>$&nbsp;</span>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="dialogo-form__iva-select">
+        <mat-label>IVA</mat-label>
+        <mat-select [(ngModel)]="ivaSeleccionado" name="ivaSeleccionado" (ngModelChange)="onCambioIva()">
+          @for (iva of ivasDisponibles; track iva) {
+            <mat-option [value]="iva">{{ iva }}%</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    </div>
   }
 </mat-dialog-content>
 

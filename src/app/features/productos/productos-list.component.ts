@@ -108,7 +108,7 @@ export class ProductosListComponent implements OnInit {
               proveedorId: resultado.precioInicial.proveedorId,
               costo: resultado.precioInicial.costo,
               porcentajeAjuste: 0,
-              iva: null,
+              iva: resultado.precioInicial.iva,
               fechaCotizacion: this.fechaHoyIso(),
               observaciones: null,
               creadoPor: null
