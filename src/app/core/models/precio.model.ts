@@ -5,6 +5,8 @@ export interface PrecioProveedor {
   costo: number;
   costoBase: number;
   porcentajeAjuste: number;
+  iva: number | null;
+  costoConIva: number | null;
   fechaCotizacion: string;
   diasDesdeCotizacion: number;
   vencido: boolean;
@@ -15,6 +17,7 @@ export interface RegistrarPrecio {
   proveedorId: number;
   costo: number;
   porcentajeAjuste: number;
+  iva: number | null;
   fechaCotizacion: string;
   observaciones: string | null;
   creadoPor: string | null;
@@ -24,6 +27,12 @@ export interface PrecioActualizado {
   precioId: number;
   costo: number;
   porcentajeAjuste: number;
+}
+
+export interface IvaActualizado {
+  precioId: number;
+  iva: number | null;
+  costoConIva: number | null;
 }
 
 export interface AlertaPrecio {

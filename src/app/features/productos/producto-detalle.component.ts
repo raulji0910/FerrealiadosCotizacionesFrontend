@@ -25,7 +25,8 @@ import { ProductoFormDialogComponent } from './producto-form-dialog.component';
   styleUrl: './producto-detalle.component.scss'
 })
 export class ProductoDetalleComponent implements OnInit {
-  readonly columnas = ['proveedor', 'costo', 'costoConPorcentaje', 'fecha', 'dias', 'estado'];
+  readonly columnas = ['proveedor', 'costo', 'costoConPorcentaje', 'costoConIva', 'fecha', 'dias', 'estado'];
+  readonly ivasDisponibles = [19, 5];
   readonly producto = signal<Producto | null>(null);
   readonly precios = signal<PrecioProveedor[]>([]);
   readonly proveedores = signal<Proveedor[]>([]);
@@ -131,6 +132,31 @@ export class ProductoDetalleComponent implements OnInit {
       },
       error: (error) => {
         const mensaje = error?.error?.mensaje ?? 'No se pudo actualizar el porcentaje.';
+        this.snackBar.open(mensaje, 'Cerrar', { duration: 4000 });
+      }
+    });
+  }
+
+  // Vista previa inmediata mientras se elige el IVA; el guardado real ocurre al confirmar el cambio.
+  costoConIvaPreview(precio: PrecioProveedor): number | null {
+    if (!precio.iva) return null;
+    return Math.round(precio.costoBase * (1 + precio.iva / 100) * 100) / 100;
+  }
+
+  onCambioIvaLocal(precio: PrecioProveedor, valor: string): void {
+    const iva = valor === '' ? null : Number(valor);
+    precio.iva = iva;
+    this.guardarIva(precio);
+  }
+
+  guardarIva(precio: PrecioProveedor): void {
+    this.productoService.actualizarIvaPrecio(this.productoId, precio.precioId, precio.iva).subscribe({
+      next: (resultado) => {
+        precio.iva = resultado.iva;
+        precio.costoConIva = resultado.costoConIva;
+      },
+      error: (error) => {
+        const mensaje = error?.error?.mensaje ?? 'No se pudo actualizar el IVA.';
         this.snackBar.open(mensaje, 'Cerrar', { duration: 4000 });
       }
     });

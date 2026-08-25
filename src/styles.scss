@@ -62,6 +62,21 @@ body {
   margin: 0.25rem 0 1rem;
 }
 
+.dialogo-form__iva {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
+
+  &-costo {
+    flex: 2;
+  }
+
+  &-select {
+    flex: 1;
+    min-width: 5.5rem;
+  }
+}
+
 .dialogo-form__ajuste-resultado {
   font-size: 0.8rem;
   font-weight: 500;

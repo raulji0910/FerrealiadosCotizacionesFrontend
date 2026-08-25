@@ -65,6 +65,25 @@
       </td>
     </ng-container>
 
+    <ng-container matColumnDef="costoConIva">
+      <th mat-header-cell *matHeaderCellDef>Costo con IVA</th>
+      <td mat-cell *matCellDef="let precio" data-label="Costo con IVA">
+        <div class="detalle__ajuste-inline">
+          <span>{{ costoConIvaPreview(precio) | currency: 'COP' : 'symbol' : '1.0-0' }}</span>
+          <select
+            class="detalle__ajuste-select"
+            [ngModel]="precio.iva"
+            (ngModelChange)="onCambioIvaLocal(precio, $event)"
+          >
+            <option [ngValue]="null">Sin IVA</option>
+            @for (iva of ivasDisponibles; track iva) {
+              <option [ngValue]="iva">{{ iva }}%</option>
+            }
+          </select>
+        </div>
+      </td>
+    </ng-container>
+
     <ng-container matColumnDef="fecha">
       <th mat-header-cell *matHeaderCellDef>Fecha cotización</th>
       <td mat-cell *matCellDef="let precio" data-label="Fecha cotización">{{ precio.fechaCotizacion | date: 'dd/MM/yyyy' }}</td>
