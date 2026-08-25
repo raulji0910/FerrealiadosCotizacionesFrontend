@@ -26,7 +26,7 @@ import { ProductoFormDialogComponent } from './producto-form-dialog.component';
 })
 export class ProductoDetalleComponent implements OnInit {
   readonly columnas = ['proveedor', 'costo', 'costoConPorcentaje', 'costoConIva', 'fecha', 'dias', 'estado'];
-  readonly ivasDisponibles = [19, 5];
+  readonly ivasDisponibles = [19, 5, 0];
   readonly producto = signal<Producto | null>(null);
   readonly precios = signal<PrecioProveedor[]>([]);
   readonly proveedores = signal<Proveedor[]>([]);
@@ -138,14 +138,16 @@ export class ProductoDetalleComponent implements OnInit {
   }
 
   // Vista previa inmediata mientras se elige el IVA; el guardado real ocurre al confirmar el cambio.
+  // Ojo: 0% es un valor de IVA válido y distinto de "Sin IVA" (null) — no usar chequeo por falsy.
   costoConIvaPreview(precio: PrecioProveedor): number | null {
-    if (!precio.iva) return null;
+    if (precio.iva === null || precio.iva === undefined) return null;
     return Math.round(precio.costoBase * (1 + precio.iva / 100) * 100) / 100;
   }
 
-  onCambioIvaLocal(precio: PrecioProveedor, valor: string): void {
-    const iva = valor === '' ? null : Number(valor);
-    precio.iva = iva;
+  onCambioIvaLocal(precio: PrecioProveedor, valor: number | null): void {
+    // El <select> usa [ngValue], así que $event ya llega con el tipo real (number | null),
+    // no como string — convertir con Number() rompería "Sin IVA" (Number(null) es 0, no null).
+    precio.iva = valor;
     this.guardarIva(precio);
   }
 

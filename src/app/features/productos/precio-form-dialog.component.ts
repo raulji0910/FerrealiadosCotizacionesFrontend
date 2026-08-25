@@ -16,7 +16,7 @@ export interface PrecioFormDialogData {
 }
 
 const MAXIMO_SUGERENCIAS = 50;
-const IVAS_DISPONIBLES = [19, 5];
+const IVAS_DISPONIBLES = [19, 5, 0];
 
 @Component({
   selector: 'app-precio-form-dialog',
