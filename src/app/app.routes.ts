@@ -29,6 +29,18 @@ export const routes: Routes = [
         loadComponent: () => import('./features/alertas/alertas.component').then((m) => m.AlertasComponent)
       },
       {
+        path: 'clientes',
+        loadComponent: () => import('./features/clientes/clientes-list.component').then((m) => m.ClientesListComponent)
+      },
+      {
+        path: 'cotizaciones',
+        loadComponent: () => import('./features/cotizaciones/cotizaciones-list.component').then((m) => m.CotizacionesListComponent)
+      },
+      {
+        path: 'cotizaciones/:id',
+        loadComponent: () => import('./features/cotizaciones/cotizacion-detalle.component').then((m) => m.CotizacionDetalleComponent)
+      },
+      {
         path: 'configuracion',
         loadComponent: () => import('./features/configuracion/configuracion.component').then((m) => m.ConfiguracionComponent),
         canActivate: [adminGuard]

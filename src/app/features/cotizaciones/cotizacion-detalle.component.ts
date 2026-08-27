@@ -1,0 +1,161 @@
+import { Component, OnInit, signal } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
+import { FormsModule } from '@angular/forms';
+import { CurrencyPipe, DatePipe } from '@angular/common';
+import { MatTableModule } from '@angular/material/table';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatChipsModule } from '@angular/material/chips';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatDialog } from '@angular/material/dialog';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { CotizacionService } from '../../core/services/cotizacion.service';
+import { CotizacionDetalle, CotizacionItem } from '../../core/models/cotizacion.model';
+import { EmitirCotizacionDialogComponent } from './emitir-cotizacion-dialog.component';
+
+@Component({
+  selector: 'app-cotizacion-detalle',
+  standalone: true,
+  imports: [FormsModule, CurrencyPipe, DatePipe, MatTableModule, MatButtonModule, MatIconModule, MatChipsModule, MatProgressBarModule],
+  templateUrl: './cotizacion-detalle.component.html',
+  styleUrl: './cotizacion-detalle.component.scss'
+})
+export class CotizacionDetalleComponent implements OnInit {
+  readonly cotizacion = signal<CotizacionDetalle | null>(null);
+  readonly cargando = signal(false);
+  readonly descargandoPdf = signal(false);
+
+  private cotizacionId!: number;
+
+  constructor(
+    private readonly route: ActivatedRoute,
+    private readonly router: Router,
+    private readonly cotizacionService: CotizacionService,
+    private readonly dialog: MatDialog,
+    private readonly snackBar: MatSnackBar
+  ) {}
+
+  get columnas(): string[] {
+    const esBorrador = this.cotizacion()?.estado === 'Borrador';
+    return esBorrador
+      ? ['producto', 'proveedor', 'cantidad', 'precioUnitario', 'subtotal', 'quitar']
+      : ['producto', 'proveedor', 'cantidad', 'precioUnitario', 'subtotal'];
+  }
+
+  ngOnInit(): void {
+    this.cotizacionId = Number(this.route.snapshot.paramMap.get('id'));
+    this.cargar();
+  }
+
+  cargar(): void {
+    this.cargando.set(true);
+    this.cotizacionService.obtenerPorId(this.cotizacionId).subscribe({
+      next: (cotizacion) => {
+        this.cotizacion.set(cotizacion);
+        this.cargando.set(false);
+      },
+      error: () => this.cargando.set(false)
+    });
+  }
+
+  volver(): void {
+    this.router.navigate(['/cotizaciones']);
+  }
+
+  onCambioCantidadLocal(item: CotizacionItem, valor: number): void {
+    item.cantidad = valor;
+    item.subtotal = item.precioUnitario * valor;
+  }
+
+  guardarCantidad(item: CotizacionItem): void {
+    const valor = Math.max(1, Math.round(item.cantidad));
+    item.cantidad = valor;
+
+    this.cotizacionService.actualizarCantidad(item.id, { cantidad: valor }).subscribe({
+      next: (actualizado) => {
+        item.cantidad = actualizado.cantidad;
+        item.subtotal = actualizado.subtotal;
+        this.recalcularTotal();
+      },
+      error: (error) => {
+        const mensaje = error?.error?.mensaje ?? 'No se pudo actualizar la cantidad.';
+        this.snackBar.open(mensaje, 'Cerrar', { duration: 4000 });
+      }
+    });
+  }
+
+  quitarItem(item: CotizacionItem): void {
+    this.cotizacionService.quitarItem(item.id).subscribe({
+      next: () => {
+        const cotizacion = this.cotizacion();
+        if (!cotizacion) return;
+
+        const quedan = cotizacion.items.filter((i) => i.id !== item.id);
+        if (quedan.length === 0) {
+          // El borrador se borró en el servidor al quedar sin ítems (ver CotizacionService).
+          this.snackBar.open('Cotización eliminada: no quedaban ítems', 'Cerrar', { duration: 4000 });
+          this.volver();
+          return;
+        }
+
+        this.cotizacion.set({ ...cotizacion, items: quedan, cantidadItems: quedan.length, total: quedan.reduce((acc, i) => acc + i.subtotal, 0) });
+      },
+      error: (error) => {
+        const mensaje = error?.error?.mensaje ?? 'No se pudo quitar el ítem.';
+        this.snackBar.open(mensaje, 'Cerrar', { duration: 4000 });
+      }
+    });
+  }
+
+  abrirDialogoEmitir(): void {
+    const dialogRef = this.dialog.open(EmitirCotizacionDialogComponent, {
+      width: '28rem',
+      autoFocus: 'dialog'
+    });
+
+    dialogRef.afterOpened().subscribe(() => window.dispatchEvent(new Event('resize')));
+
+    dialogRef.afterClosed().subscribe((resultado) => {
+      if (!resultado) return;
+
+      this.cotizacionService.emitir(this.cotizacionId, resultado).subscribe({
+        next: (emitida) => {
+          this.cotizacion.set(emitida);
+          this.snackBar.open(`Cotización N.° ${emitida.consecutivo} emitida`, 'Cerrar', { duration: 4000 });
+        },
+        error: (error) => {
+          const mensaje = error?.error?.mensaje ?? 'No se pudo cargar la cotización al cliente.';
+          this.snackBar.open(mensaje, 'Cerrar', { duration: 4000 });
+        }
+      });
+    });
+  }
+
+  descargarPdf(): void {
+    const cotizacion = this.cotizacion();
+    if (!cotizacion) return;
+
+    this.descargandoPdf.set(true);
+    this.cotizacionService.descargarPdf(this.cotizacionId).subscribe({
+      next: (blob) => {
+        const url = URL.createObjectURL(blob);
+        const enlace = document.createElement('a');
+        enlace.href = url;
+        enlace.download = `cotizacion-${cotizacion.consecutivo}.pdf`;
+        enlace.click();
+        URL.revokeObjectURL(url);
+        this.descargandoPdf.set(false);
+      },
+      error: () => {
+        this.snackBar.open('No se pudo generar el PDF.', 'Cerrar', { duration: 4000 });
+        this.descargandoPdf.set(false);
+      }
+    });
+  }
+
+  private recalcularTotal(): void {
+    const cotizacion = this.cotizacion();
+    if (!cotizacion) return;
+    this.cotizacion.set({ ...cotizacion, total: cotizacion.items.reduce((acc, i) => acc + i.subtotal, 0) });
+  }
+}

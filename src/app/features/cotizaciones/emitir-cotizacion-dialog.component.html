@@ -1,0 +1,40 @@
+<h2 mat-dialog-title>Cargar cotización a cliente</h2>
+
+<mat-dialog-content class="dialogo-form">
+  <mat-form-field appearance="outline" class="dialogo-form__campo">
+    <mat-label>Cliente</mat-label>
+    <input
+      matInput
+      [(ngModel)]="clienteSeleccionado"
+      (ngModelChange)="alEscribirCliente($event)"
+      name="cliente"
+      [matAutocomplete]="autocompletadoCliente"
+      required
+    />
+    <mat-autocomplete #autocompletadoCliente="matAutocomplete" [displayWith]="mostrarNombreCliente">
+      @for (cliente of clientesFiltrados(); track cliente.id) {
+        <mat-option [value]="cliente">{{ cliente.nombre }}</mat-option>
+      }
+    </mat-autocomplete>
+    <mat-hint>Debe existir en Clientes — créalo primero si aún no está registrado</mat-hint>
+  </mat-form-field>
+
+  <mat-form-field appearance="outline" class="dialogo-form__campo">
+    <mat-label>Forma de pago</mat-label>
+    <mat-select [(ngModel)]="formaPago" name="formaPago">
+      @for (forma of formasPago; track forma) {
+        <mat-option [value]="forma">{{ forma }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+
+  <mat-form-field appearance="outline" class="dialogo-form__campo">
+    <mat-label>Nota</mat-label>
+    <textarea matInput [(ngModel)]="nota" name="nota" rows="3"></textarea>
+  </mat-form-field>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="cancelar()">Cancelar</button>
+  <button mat-flat-button color="primary" (click)="guardar()">Cargar a cliente</button>
+</mat-dialog-actions>

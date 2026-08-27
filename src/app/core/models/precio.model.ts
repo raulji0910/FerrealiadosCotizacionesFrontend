@@ -1,3 +1,5 @@
+import { MarcaCotizacion } from './cotizacion.model';
+
 export interface PrecioProveedor {
   precioId: number;
   proveedorId: number;
@@ -11,6 +13,7 @@ export interface PrecioProveedor {
   diasDesdeCotizacion: number;
   vencido: boolean;
   esMejorPrecio: boolean;
+  marcas: MarcaCotizacion[];
 }
 
 export interface RegistrarPrecio {

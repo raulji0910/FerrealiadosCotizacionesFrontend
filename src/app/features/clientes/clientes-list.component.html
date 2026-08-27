@@ -1,0 +1,79 @@
+<div class="clientes">
+  <div class="clientes__header">
+    <h2>Clientes</h2>
+    <button mat-flat-button color="primary" (click)="abrirNuevo()">
+      <mat-icon>add</mat-icon>
+      Nuevo cliente
+    </button>
+  </div>
+
+  <mat-form-field appearance="outline" class="clientes__buscador">
+    <mat-label>Buscar cliente</mat-label>
+    <input matInput [(ngModel)]="texto" (ngModelChange)="buscar()" />
+    <mat-icon matSuffix>search</mat-icon>
+  </mat-form-field>
+
+  @if (cargando()) {
+    <mat-progress-bar mode="indeterminate" />
+  }
+
+  <table mat-table [dataSource]="clientes()" class="tabla-responsiva">
+    <ng-container matColumnDef="nombre">
+      <th mat-header-cell *matHeaderCellDef>Nombre</th>
+      <td mat-cell *matCellDef="let cliente" data-label="Nombre">{{ cliente.nombre }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="nit">
+      <th mat-header-cell *matHeaderCellDef>Identificación</th>
+      <td mat-cell *matCellDef="let cliente" data-label="Identificación">{{ cliente.nit || '-' }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="direccion">
+      <th mat-header-cell *matHeaderCellDef>Dirección</th>
+      <td mat-cell *matCellDef="let cliente" data-label="Dirección">{{ cliente.direccion || '-' }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="telefono">
+      <th mat-header-cell *matHeaderCellDef>Teléfonos</th>
+      <td mat-cell *matCellDef="let cliente" data-label="Teléfonos">{{ cliente.telefono || '-' }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="ciudad">
+      <th mat-header-cell *matHeaderCellDef>Ciudad</th>
+      <td mat-cell *matCellDef="let cliente" data-label="Ciudad">{{ cliente.ciudad || '-' }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="estado">
+      <th mat-header-cell *matHeaderCellDef>Estado</th>
+      <td mat-cell *matCellDef="let cliente" data-label="Estado">
+        <mat-chip [class.clientes__chip--activo]="cliente.activo" [class.clientes__chip--inactivo]="!cliente.activo">
+          {{ cliente.activo ? 'Activo' : 'Inactivo' }}
+        </mat-chip>
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="acciones">
+      <th mat-header-cell *matHeaderCellDef></th>
+      <td mat-cell *matCellDef="let cliente" data-label="">
+        <button mat-icon-button (click)="abrirEditar(cliente)">
+          <mat-icon>edit</mat-icon>
+        </button>
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="columnas"></tr>
+    <tr mat-row *matRowDef="let cliente; columns: columnas"></tr>
+
+    <tr class="clientes__vacio-fila" *matNoDataRow>
+      <td [attr.colspan]="columnas.length" class="clientes__vacio">No hay clientes que coincidan con la búsqueda.</td>
+    </tr>
+  </table>
+
+  <mat-paginator
+    [length]="total()"
+    [pageIndex]="pageIndex()"
+    [pageSize]="pageSize()"
+    [pageSizeOptions]="[10, 25, 50]"
+    (page)="alCambiarPagina($event)"
+  />
+</div>

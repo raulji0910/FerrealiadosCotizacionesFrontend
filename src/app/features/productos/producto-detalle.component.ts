@@ -11,11 +11,20 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { CurrencyPipe, DatePipe } from '@angular/common';
 import { ProductoService } from '../../core/services/producto.service';
 import { ProveedorService } from '../../core/services/proveedor.service';
+import { CotizacionService } from '../../core/services/cotizacion.service';
 import { Producto } from '../../core/models/producto.model';
 import { Proveedor } from '../../core/models/proveedor.model';
 import { PrecioProveedor } from '../../core/models/precio.model';
 import { PrecioFormDialogComponent } from './precio-form-dialog.component';
 import { ProductoFormDialogComponent } from './producto-form-dialog.component';
+
+// Estado transitorio de UI para "agregar una marca" — no viene del backend, se agrega directo
+// sobre la fila igual que el resto de la edición inline de esta grilla (porcentaje, IVA).
+interface PrecioProveedorVista extends PrecioProveedor {
+  agregandoMarca?: boolean;
+  nuevoCodigo?: string;
+  nuevaCantidad?: number;
+}
 
 @Component({
   selector: 'app-producto-detalle',
@@ -25,10 +34,10 @@ import { ProductoFormDialogComponent } from './producto-form-dialog.component';
   styleUrl: './producto-detalle.component.scss'
 })
 export class ProductoDetalleComponent implements OnInit {
-  readonly columnas = ['proveedor', 'costo', 'costoConPorcentaje', 'costoConIva', 'fecha', 'dias', 'estado'];
+  readonly columnas = ['proveedor', 'costo', 'costoConPorcentaje', 'costoConIva', 'fecha', 'dias', 'estado', 'cotizar'];
   readonly ivasDisponibles = [19, 5, 0];
   readonly producto = signal<Producto | null>(null);
-  readonly precios = signal<PrecioProveedor[]>([]);
+  readonly precios = signal<PrecioProveedorVista[]>([]);
   readonly proveedores = signal<Proveedor[]>([]);
   readonly cargando = signal(false);
 
@@ -39,6 +48,7 @@ export class ProductoDetalleComponent implements OnInit {
     private readonly router: Router,
     private readonly productoService: ProductoService,
     private readonly proveedorService: ProveedorService,
+    private readonly cotizacionService: CotizacionService,
     private readonly dialog: MatDialog,
     private readonly snackBar: MatSnackBar
   ) {}
@@ -159,6 +169,48 @@ export class ProductoDetalleComponent implements OnInit {
       },
       error: (error) => {
         const mensaje = error?.error?.mensaje ?? 'No se pudo actualizar el IVA.';
+        this.snackBar.open(mensaje, 'Cerrar', { duration: 4000 });
+      }
+    });
+  }
+
+  // Marcado para cotización: un mismo precio puede tener varias marcas activas simultáneas, cada
+  // una en su propio código (una cotización distinta en construcción). El checkbox no es un toggle
+  // exclusivo — cada confirmación agrega una marca nueva, y vuelve a su estado inicial listo para otra.
+  iniciarMarca(precio: PrecioProveedorVista): void {
+    precio.agregandoMarca = true;
+    precio.nuevoCodigo = '';
+    precio.nuevaCantidad = 1;
+  }
+
+  cancelarMarca(precio: PrecioProveedorVista): void {
+    precio.agregandoMarca = false;
+  }
+
+  confirmarMarca(precio: PrecioProveedorVista): void {
+    const codigo = (precio.nuevoCodigo || '').trim();
+    if (!codigo) return;
+
+    const cantidad = Math.max(1, Math.round(precio.nuevaCantidad || 1));
+
+    this.cotizacionService.marcarPrecio({ precioId: precio.precioId, codigo, cantidad }).subscribe({
+      next: () => {
+        precio.agregandoMarca = false;
+        this.snackBar.open(`Agregado a la cotización "${codigo.toUpperCase()}"`, 'Cerrar', { duration: 3000 });
+        this.cargar();
+      },
+      error: (error) => {
+        const mensaje = error?.error?.mensaje ?? 'No se pudo agregar el ítem a la cotización.';
+        this.snackBar.open(mensaje, 'Cerrar', { duration: 4000 });
+      }
+    });
+  }
+
+  quitarMarca(cotizacionItemId: number): void {
+    this.cotizacionService.quitarItem(cotizacionItemId).subscribe({
+      next: () => this.cargar(),
+      error: (error) => {
+        const mensaje = error?.error?.mensaje ?? 'No se pudo quitar la marca.';
         this.snackBar.open(mensaje, 'Cerrar', { duration: 4000 });
       }
     });

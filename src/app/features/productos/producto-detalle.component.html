@@ -103,6 +103,55 @@
       </td>
     </ng-container>
 
+    <ng-container matColumnDef="cotizar">
+      <th mat-header-cell *matHeaderCellDef>Cotizar</th>
+      <td mat-cell *matCellDef="let precio" data-label="Cotizar">
+        <div class="detalle__marcas">
+          @for (marca of precio.marcas; track marca.cotizacionItemId) {
+            <mat-chip class="detalle__chip-marca" [class.detalle__chip-marca--emitida]="marca.estado === 'Emitida'">
+              {{ marca.codigo }} ({{ marca.cantidad }})
+              @if (marca.estado === 'Borrador') {
+                <button matChipRemove (click)="quitarMarca(marca.cotizacionItemId)" aria-label="Quitar marca">
+                  <mat-icon>cancel</mat-icon>
+                </button>
+              }
+            </mat-chip>
+          }
+
+          @if (precio.agregandoMarca) {
+            <div class="detalle__marca-nueva">
+              <input
+                type="text"
+                class="detalle__marca-codigo"
+                placeholder="Código"
+                [(ngModel)]="precio.nuevoCodigo"
+                (keydown.enter)="confirmarMarca(precio)"
+              />
+              <input
+                type="number"
+                class="detalle__marca-cantidad"
+                min="1"
+                step="1"
+                [(ngModel)]="precio.nuevaCantidad"
+                (keydown.enter)="confirmarMarca(precio)"
+              />
+              <button mat-icon-button (click)="confirmarMarca(precio)" aria-label="Confirmar">
+                <mat-icon>check</mat-icon>
+              </button>
+              <button mat-icon-button (click)="cancelarMarca(precio)" aria-label="Cancelar">
+                <mat-icon>close</mat-icon>
+              </button>
+            </div>
+          } @else {
+            <label class="detalle__marca-checkbox">
+              <input type="checkbox" [checked]="false" (change)="iniciarMarca(precio)" />
+              Agregar
+            </label>
+          }
+        </div>
+      </td>
+    </ng-container>
+
     <tr mat-header-row *matHeaderRowDef="columnas"></tr>
     <tr
       mat-row

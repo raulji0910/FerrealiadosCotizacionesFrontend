@@ -1,0 +1,82 @@
+<div class="cotizaciones">
+  <div class="cotizaciones__header">
+    <h2>Cotizaciones</h2>
+  </div>
+
+  <div class="cotizaciones__filtros">
+    <mat-form-field appearance="outline" class="cotizaciones__buscador">
+      <mat-label>Buscar por código o cliente</mat-label>
+      <input matInput [(ngModel)]="texto" (ngModelChange)="buscar()" />
+      <mat-icon matSuffix>search</mat-icon>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="cotizaciones__estado">
+      <mat-label>Estado</mat-label>
+      <mat-select [(ngModel)]="estado" (ngModelChange)="buscar()">
+        <mat-option value="">Todas</mat-option>
+        <mat-option value="Borrador">Borrador</mat-option>
+        <mat-option value="Emitida">Emitida</mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+
+  @if (cargando()) {
+    <mat-progress-bar mode="indeterminate" />
+  }
+
+  <table mat-table [dataSource]="cotizaciones()" class="tabla-responsiva">
+    <ng-container matColumnDef="codigo">
+      <th mat-header-cell *matHeaderCellDef>Código</th>
+      <td mat-cell *matCellDef="let c" data-label="Código">{{ c.codigo }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="estado">
+      <th mat-header-cell *matHeaderCellDef>Estado</th>
+      <td mat-cell *matCellDef="let c" data-label="Estado">
+        <mat-chip [class.cotizaciones__chip--emitida]="c.estado === 'Emitida'" [class.cotizaciones__chip--borrador]="c.estado === 'Borrador'">
+          {{ c.estado === 'Emitida' ? 'Emitida' : 'Borrador' }}
+        </mat-chip>
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="consecutivo">
+      <th mat-header-cell *matHeaderCellDef>N.°</th>
+      <td mat-cell *matCellDef="let c" data-label="N.°">{{ c.consecutivo ?? '-' }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="cliente">
+      <th mat-header-cell *matHeaderCellDef>Cliente</th>
+      <td mat-cell *matCellDef="let c" data-label="Cliente">{{ c.clienteNombre || '-' }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="fecha">
+      <th mat-header-cell *matHeaderCellDef>Fecha</th>
+      <td mat-cell *matCellDef="let c" data-label="Fecha">{{ (c.fechaEmision || c.fechaCreacion) | date: 'dd/MM/yyyy' }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="items">
+      <th mat-header-cell *matHeaderCellDef>Ítems</th>
+      <td mat-cell *matCellDef="let c" data-label="Ítems">{{ c.cantidadItems }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="total">
+      <th mat-header-cell *matHeaderCellDef>Total</th>
+      <td mat-cell *matCellDef="let c" data-label="Total">{{ c.total | currency: 'COP' : 'symbol' : '1.0-0' }}</td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="columnas"></tr>
+    <tr mat-row *matRowDef="let c; columns: columnas" (click)="abrir(c)" class="cotizaciones__fila"></tr>
+
+    <tr class="cotizaciones__vacio-fila" *matNoDataRow>
+      <td [attr.colspan]="columnas.length" class="cotizaciones__vacio">No hay cotizaciones que coincidan con la búsqueda.</td>
+    </tr>
+  </table>
+
+  <mat-paginator
+    [length]="total()"
+    [pageIndex]="pageIndex()"
+    [pageSize]="pageSize()"
+    [pageSizeOptions]="[10, 25, 50]"
+    (page)="alCambiarPagina($event)"
+  />
+</div>

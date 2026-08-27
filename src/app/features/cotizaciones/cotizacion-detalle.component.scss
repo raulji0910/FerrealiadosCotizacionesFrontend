@@ -1,0 +1,85 @@
+.detalle {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+
+  &__volver {
+    align-self: flex-start;
+  }
+
+  &__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+
+    h2 {
+      margin: 0 0 0.25rem;
+    }
+  }
+
+  &__acciones {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  &__datos-cliente {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 1.5rem;
+    color: var(--mat-sys-on-surface-variant);
+  }
+
+  &__nota {
+    margin: 0;
+    color: var(--mat-sys-on-surface-variant);
+  }
+
+  &__codigo-producto {
+    color: var(--mat-sys-on-surface-variant);
+    font-size: 0.85rem;
+    margin-left: 0.35rem;
+  }
+
+  &__cantidad-input {
+    width: 4rem;
+    padding: 0.15rem 0.35rem;
+    border: 1px solid var(--mat-sys-outline);
+    border-radius: 4px;
+    font: inherit;
+    color: inherit;
+    background: transparent;
+
+    &:focus {
+      outline: none;
+      border-color: var(--mat-sys-primary);
+    }
+  }
+
+  &__total {
+    align-self: flex-end;
+    font-size: 1.1rem;
+  }
+
+  &__chip--borrador {
+    --mat-chip-label-text-color: var(--mat-sys-on-secondary-container);
+    background-color: var(--mat-sys-secondary-container);
+  }
+
+  &__chip--emitida {
+    --mat-chip-label-text-color: var(--mat-sys-on-tertiary-container);
+    background-color: var(--mat-sys-tertiary-container);
+  }
+
+  &__vacio {
+    text-align: center;
+    padding: 1.5rem;
+    color: var(--mat-sys-on-surface-variant);
+  }
+}
+
+table {
+  width: 100%;
+}

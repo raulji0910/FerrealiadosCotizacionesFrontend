@@ -17,6 +17,14 @@
         <mat-icon matListItemIcon>notifications</mat-icon>
         <span matListItemTitle>Alertas</span>
       </a>
+      <a mat-list-item routerLink="/clientes" routerLinkActive="activo" (click)="esMovil() && sidenav.close()">
+        <mat-icon matListItemIcon>contacts</mat-icon>
+        <span matListItemTitle>Clientes</span>
+      </a>
+      <a mat-list-item routerLink="/cotizaciones" routerLinkActive="activo" (click)="esMovil() && sidenav.close()">
+        <mat-icon matListItemIcon>request_quote</mat-icon>
+        <span matListItemTitle>Cotizaciones</span>
+      </a>
       @if (esAdmin) {
         <a mat-list-item routerLink="/usuarios" routerLinkActive="activo" (click)="esMovil() && sidenav.close()">
           <mat-icon matListItemIcon>group</mat-icon>
