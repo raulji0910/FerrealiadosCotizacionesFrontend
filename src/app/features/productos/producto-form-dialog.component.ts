@@ -44,7 +44,7 @@ export class ProductoFormDialogComponent {
 
   producto: ProductoCrear & { activo?: boolean } = this.data.producto
     ? { ...this.data.producto }
-    : { codigo: null, nombre: '', descripcion: null, unidadMedida: null };
+    : { codigo: null, nombre: '', unidadMedida: null };
 
   // Solo aplica al crear un producto nuevo: primer proveedor + costo, ambos opcionales.
   proveedorSeleccionado: Proveedor | string | null = null;
@@ -105,7 +105,6 @@ export class ProductoFormDialogComponent {
       const dto: ProductoActualizar = {
         codigo: this.producto.codigo,
         nombre: this.producto.nombre,
-        descripcion: this.producto.descripcion,
         unidadMedida: this.producto.unidadMedida,
         activo: this.producto.activo ?? true
       };
