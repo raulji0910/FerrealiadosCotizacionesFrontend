@@ -18,12 +18,6 @@
     </mat-autocomplete>
   </mat-form-field>
 
-  <mat-form-field appearance="outline" class="dialogo-form__campo">
-    <mat-label>Costo sin IVA</mat-label>
-    <input matInput type="number" [(ngModel)]="costo" name="costo" required (ngModelChange)="onCambioCosto()" />
-    <span matTextPrefix>$&nbsp;</span>
-  </mat-form-field>
-
   <div class="dialogo-form__campo dialogo-form__iva">
     <mat-form-field appearance="outline" class="dialogo-form__iva-costo">
       <mat-label>Costo con IVA</mat-label>
@@ -40,6 +34,12 @@
       </mat-select>
     </mat-form-field>
   </div>
+
+  <mat-form-field appearance="outline" class="dialogo-form__campo">
+    <mat-label>Costo sin IVA</mat-label>
+    <input matInput type="number" [(ngModel)]="costo" name="costo" required (ngModelChange)="onCambioCosto()" />
+    <span matTextPrefix>$&nbsp;</span>
+  </mat-form-field>
 
   <div class="dialogo-form__campo dialogo-form__ajuste">
     <mat-form-field appearance="outline" class="dialogo-form__campo">
