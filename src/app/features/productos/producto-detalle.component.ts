@@ -18,6 +18,7 @@ import { PrecioProveedor } from '../../core/models/precio.model';
 import { PrecioFormDialogComponent } from './precio-form-dialog.component';
 import { ProductoFormDialogComponent } from './producto-form-dialog.component';
 import { ConfirmacionDialogComponent } from '../../core/dialogs/confirmacion-dialog.component';
+import { MensajeDialogComponent } from '../../core/dialogs/mensaje-dialog.component';
 
 // Estado transitorio de UI para "agregar una marca" — no viene del backend, se agrega directo
 // sobre la fila igual que el resto de la edición inline de esta grilla (porcentaje, IVA).
@@ -143,7 +144,10 @@ export class ProductoDetalleComponent implements OnInit {
         },
         error: (error) => {
           const mensaje = error?.error?.mensaje ?? 'No se pudo eliminar el producto.';
-          this.snackBar.open(mensaje, 'Cerrar', { duration: 4000 });
+          this.dialog.open(MensajeDialogComponent, {
+            width: '26rem',
+            data: { titulo: 'No se pudo eliminar', mensaje }
+          });
         }
       });
     });
