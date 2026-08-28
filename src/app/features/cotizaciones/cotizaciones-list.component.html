@@ -41,7 +41,7 @@
 
     <ng-container matColumnDef="consecutivo">
       <th mat-header-cell *matHeaderCellDef>N.°</th>
-      <td mat-cell *matCellDef="let c" data-label="N.°">{{ c.consecutivo ?? '-' }}</td>
+      <td mat-cell *matCellDef="let c" data-label="N.°">{{ c.consecutivoFormateado ?? '-' }}</td>
     </ng-container>
 
     <ng-container matColumnDef="cliente">

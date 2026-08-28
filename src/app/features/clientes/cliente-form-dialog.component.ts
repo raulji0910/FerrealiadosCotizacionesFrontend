@@ -24,7 +24,7 @@ export class ClienteFormDialogComponent {
 
   formulario: ClienteCrear & { activo?: boolean } = this.data.cliente
     ? { ...this.data.cliente }
-    : { nombre: '', nit: null, direccion: null, telefono: null, ciudad: null };
+    : { nombre: '', nit: null, direccion: null, telefono: null, ciudad: null, contacto: null, email: null };
 
   guardar(): void {
     if (!this.formulario.nombre) return;
@@ -36,6 +36,8 @@ export class ClienteFormDialogComponent {
         direccion: this.formulario.direccion,
         telefono: this.formulario.telefono,
         ciudad: this.formulario.ciudad,
+        contacto: this.formulario.contacto,
+        email: this.formulario.email,
         activo: this.formulario.activo ?? true
       };
       this.dialogRef.close(dto);

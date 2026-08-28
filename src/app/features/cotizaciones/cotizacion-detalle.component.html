@@ -9,7 +9,7 @@
       <div>
         <h2>
           @if (c.estado === 'Emitida') {
-            Cotización N.° {{ c.consecutivo }}
+            {{ c.consecutivoFormateado }}
           } @else {
             Cotización en borrador — {{ c.codigo }}
           }
@@ -38,6 +38,18 @@
         <span><strong>Cliente:</strong> {{ c.clienteNombre }}</span>
         @if (c.clienteNit) {
           <span><strong>NIT:</strong> {{ c.clienteNit }}</span>
+        }
+        @if (c.clienteContacto) {
+          <span><strong>Contacto:</strong> {{ c.clienteContacto }}</span>
+        }
+        @if (c.clienteEmail) {
+          <span><strong>Correo:</strong> {{ c.clienteEmail }}</span>
+        }
+        @if (c.clienteDireccion) {
+          <span><strong>Dirección:</strong> {{ c.clienteDireccion }}</span>
+        }
+        @if (c.clienteCiudad) {
+          <span><strong>Ciudad:</strong> {{ c.clienteCiudad }}</span>
         }
         @if (c.formaPago) {
           <span><strong>Forma de pago:</strong> {{ c.formaPago }}</span>
@@ -119,8 +131,31 @@
       </tr>
     </table>
 
-    <div class="detalle__total">
-      Total: <strong>{{ c.total | currency: 'COP' : 'symbol' : '1.0-0' }}</strong>
+    <div class="detalle__totales">
+      <div class="detalle__totales-fila">
+        <span>Subtotal ítems</span>
+        <span>{{ c.total | currency: 'COP' : 'symbol' : '1.0-0' }}</span>
+      </div>
+      @if (c.descuento > 0) {
+        <div class="detalle__totales-fila">
+          <span>Descuento</span>
+          <span>- {{ c.descuento | currency: 'COP' : 'symbol' : '1.0-0' }}</span>
+        </div>
+        <div class="detalle__totales-fila">
+          <span>Subtotal</span>
+          <span>{{ c.subtotal | currency: 'COP' : 'symbol' : '1.0-0' }}</span>
+        </div>
+      }
+      @for (tramo of c.ivaDesglose; track tramo.tarifa) {
+        <div class="detalle__totales-fila">
+          <span>IVA ({{ tramo.tarifa }}%)</span>
+          <span>{{ tramo.valor | currency: 'COP' : 'symbol' : '1.0-0' }}</span>
+        </div>
+      }
+      <div class="detalle__totales-fila detalle__totales-fila--total">
+        <span>TOTAL</span>
+        <span>{{ c.totalGeneral | currency: 'COP' : 'symbol' : '1.0-0' }}</span>
+      </div>
     </div>
   }
 </div>

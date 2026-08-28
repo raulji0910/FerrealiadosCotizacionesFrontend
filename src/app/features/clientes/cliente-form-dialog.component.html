@@ -25,6 +25,16 @@
     <mat-label>Ciudad</mat-label>
     <input matInput [(ngModel)]="formulario.ciudad" name="ciudad" />
   </mat-form-field>
+
+  <mat-form-field appearance="outline" class="dialogo-form__campo">
+    <mat-label>Persona de contacto</mat-label>
+    <input matInput [(ngModel)]="formulario.contacto" name="contacto" />
+  </mat-form-field>
+
+  <mat-form-field appearance="outline" class="dialogo-form__campo">
+    <mat-label>Correo</mat-label>
+    <input matInput type="email" [(ngModel)]="formulario.email" name="email" />
+  </mat-form-field>
 </mat-dialog-content>
 
 <mat-dialog-actions align="end">

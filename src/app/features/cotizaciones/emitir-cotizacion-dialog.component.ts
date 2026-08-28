@@ -29,6 +29,7 @@ export class EmitirCotizacionDialogComponent implements OnInit {
   clienteSeleccionado: Cliente | string | null = null;
   formaPago: string | null = null;
   nota = '';
+  descuento: number | null = null;
 
   private readonly clientes = signal<Cliente[]>([]);
   private readonly filtroCliente = signal('');
@@ -61,7 +62,8 @@ export class EmitirCotizacionDialogComponent implements OnInit {
     const dto: EmitirCotizacion = {
       clienteId,
       formaPago: this.formaPago,
-      nota: this.nota || null
+      nota: this.nota || null,
+      descuento: this.descuento || null
     };
 
     this.dialogRef.close(dto);

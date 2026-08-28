@@ -163,3 +163,23 @@
 table {
   width: 100%;
 }
+
+// La celda "Cotizar" es la más pesada de la grilla (chips + inputs de marca nueva); en la vista
+// apilada de .tabla-responsiva (<768px, ver styles.scss) el <td> por defecto pone la etiqueta y el
+// contenido en la misma fila — acá se apilan uno debajo del otro y el contenido usa el ancho
+// completo, para que los chips/inputs no se compriman ni generen scroll horizontal.
+@media (max-width: 768px) {
+  td.mat-mdc-cell[data-label='Cotizar'] {
+    flex-direction: column;
+    align-items: flex-start;
+
+    &::before {
+      margin-bottom: 0.25rem;
+    }
+  }
+
+  .detalle__marcas {
+    width: 100%;
+    min-width: 0;
+  }
+}

@@ -5,6 +5,8 @@ export interface Cliente {
   direccion: string | null;
   telefono: string | null;
   ciudad: string | null;
+  contacto: string | null;
+  email: string | null;
   activo: boolean;
 }
 
@@ -14,6 +16,8 @@ export interface ClienteCrear {
   direccion: string | null;
   telefono: string | null;
   ciudad: string | null;
+  contacto: string | null;
+  email: string | null;
 }
 
 export interface ClienteActualizar {
@@ -22,5 +26,7 @@ export interface ClienteActualizar {
   direccion: string | null;
   telefono: string | null;
   ciudad: string | null;
+  contacto: string | null;
+  email: string | null;
   activo: boolean;
 }

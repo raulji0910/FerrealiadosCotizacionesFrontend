@@ -29,6 +29,13 @@
   </mat-form-field>
 
   <mat-form-field appearance="outline" class="dialogo-form__campo">
+    <mat-label>Descuento</mat-label>
+    <input matInput type="number" min="0" [(ngModel)]="descuento" name="descuento" />
+    <span matTextPrefix>$&nbsp;</span>
+    <mat-hint>Opcional — valor en pesos sobre el subtotal de la cotización</mat-hint>
+  </mat-form-field>
+
+  <mat-form-field appearance="outline" class="dialogo-form__campo">
     <mat-label>Nota</mat-label>
     <textarea matInput [(ngModel)]="nota" name="nota" rows="3"></textarea>
   </mat-form-field>
