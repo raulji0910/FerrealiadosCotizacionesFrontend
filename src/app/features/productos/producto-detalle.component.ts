@@ -17,6 +17,7 @@ import { Proveedor } from '../../core/models/proveedor.model';
 import { PrecioProveedor } from '../../core/models/precio.model';
 import { PrecioFormDialogComponent } from './precio-form-dialog.component';
 import { ProductoFormDialogComponent } from './producto-form-dialog.component';
+import { ConfirmacionDialogComponent } from '../../core/dialogs/confirmacion-dialog.component';
 
 // Estado transitorio de UI para "agregar una marca" — no viene del backend, se agrega directo
 // sobre la fila igual que el resto de la edición inline de esta grilla (porcentaje, IVA).
@@ -116,6 +117,32 @@ export class ProductoDetalleComponent implements OnInit {
         },
         error: (error) => {
           const mensaje = error?.error?.mensaje ?? 'No se pudo actualizar el producto.';
+          this.snackBar.open(mensaje, 'Cerrar', { duration: 4000 });
+        }
+      });
+    });
+  }
+
+  abrirDialogoEliminar(producto: Producto): void {
+    const dialogRef = this.dialog.open(ConfirmacionDialogComponent, {
+      width: '26rem',
+      data: {
+        titulo: 'Eliminar producto',
+        mensaje: `¿Seguro que quieres eliminar "${producto.nombre}"? Se borrará también todo su historial de precios de proveedor. Esta acción no se puede deshacer.`,
+        textoConfirmar: 'Sí, eliminar'
+      }
+    });
+
+    dialogRef.afterClosed().subscribe((confirmado) => {
+      if (!confirmado) return;
+
+      this.productoService.eliminar(producto.id).subscribe({
+        next: () => {
+          this.snackBar.open('Producto eliminado', 'Cerrar', { duration: 3000 });
+          this.volver();
+        },
+        error: (error) => {
+          const mensaje = error?.error?.mensaje ?? 'No se pudo eliminar el producto.';
           this.snackBar.open(mensaje, 'Cerrar', { duration: 4000 });
         }
       });

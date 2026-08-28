@@ -30,6 +30,10 @@ export class ProductoService {
     return this.http.put<Producto>(`${this.baseUrl}/${id}`, dto);
   }
 
+  eliminar(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/${id}`);
+  }
+
   obtenerPrecios(id: number): Observable<PrecioProveedor[]> {
     return this.http.get<PrecioProveedor[]>(`${this.baseUrl}/${id}/precios`);
   }

@@ -12,6 +12,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { CotizacionService } from '../../core/services/cotizacion.service';
 import { CotizacionDetalle, CotizacionItem } from '../../core/models/cotizacion.model';
 import { EmitirCotizacionDialogComponent } from './emitir-cotizacion-dialog.component';
+import { ConfirmacionDialogComponent } from '../../core/dialogs/confirmacion-dialog.component';
 
 @Component({
   selector: 'app-cotizacion-detalle',
@@ -125,6 +126,36 @@ export class CotizacionDetalleComponent implements OnInit {
         },
         error: (error) => {
           const mensaje = error?.error?.mensaje ?? 'No se pudo cargar la cotización al cliente.';
+          this.snackBar.open(mensaje, 'Cerrar', { duration: 4000 });
+        }
+      });
+    });
+  }
+
+  abrirDialogoReabrir(): void {
+    const cotizacion = this.cotizacion();
+    if (!cotizacion) return;
+
+    const dialogRef = this.dialog.open(ConfirmacionDialogComponent, {
+      width: '26rem',
+      data: {
+        titulo: 'Reabrir cotización',
+        mensaje: `¿Seguro que quieres volver la cotización ${cotizacion.consecutivoFormateado} a borrador para seguir agregándole productos? Al volver a cargarla a un cliente conservará el mismo número.`,
+        textoConfirmar: 'Sí, reabrir',
+        colorConfirmar: 'primary'
+      }
+    });
+
+    dialogRef.afterClosed().subscribe((confirmado) => {
+      if (!confirmado) return;
+
+      this.cotizacionService.reabrir(this.cotizacionId).subscribe({
+        next: (reabierta) => {
+          this.cotizacion.set(reabierta);
+          this.snackBar.open('Cotización reabierta como borrador', 'Cerrar', { duration: 4000 });
+        },
+        error: (error) => {
+          const mensaje = error?.error?.mensaje ?? 'No se pudo reabrir la cotización.';
           this.snackBar.open(mensaje, 'Cerrar', { duration: 4000 });
         }
       });

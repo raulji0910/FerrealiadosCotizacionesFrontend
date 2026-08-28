@@ -11,6 +11,10 @@
         <span class="detalle__codigo">Código: {{ p.codigo || '(sin asignar)' }}</span>
       </div>
       <div class="detalle__acciones">
+        <button mat-button color="warn" (click)="abrirDialogoEliminar(p)">
+          <mat-icon>delete</mat-icon>
+          Eliminar
+        </button>
         <button mat-button (click)="abrirDialogoEditar(p)">
           <mat-icon>edit</mat-icon>
           Editar

@@ -55,6 +55,10 @@ export class CotizacionService {
     return this.http.post<CotizacionDetalle>(`${this.baseUrl}/${id}/emitir`, dto);
   }
 
+  reabrir(id: number): Observable<CotizacionDetalle> {
+    return this.http.post<CotizacionDetalle>(`${this.baseUrl}/${id}/reabrir`, {});
+  }
+
   // La API exige [Authorize]; un <a href> plano no pasa por el interceptor que inyecta el Bearer
   // token, así que se pide como blob por HttpClient y el componente arma el object URL de descarga.
   descargarPdf(id: number): Observable<Blob> {

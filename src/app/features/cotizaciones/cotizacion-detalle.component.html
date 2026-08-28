@@ -25,6 +25,10 @@
             Cargar a cliente
           </button>
         } @else {
+          <button mat-button (click)="abrirDialogoReabrir()">
+            <mat-icon>lock_open</mat-icon>
+            Reabrir a borrador
+          </button>
           <button mat-flat-button color="primary" (click)="descargarPdf()" [disabled]="descargandoPdf()">
             <mat-icon>picture_as_pdf</mat-icon>
             Descargar PDF
