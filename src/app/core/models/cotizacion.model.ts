@@ -79,3 +79,11 @@ export interface EmitirCotizacion {
 export interface ActualizarCantidadItem {
   cantidad: number;
 }
+
+export interface ActualizarPrecioItem {
+  precioUnitario: number;
+}
+
+export interface ActualizarIvaItem {
+  iva: number | null;
+}

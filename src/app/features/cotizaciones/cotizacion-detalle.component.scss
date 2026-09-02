@@ -58,6 +58,35 @@
     }
   }
 
+  &__precio-input {
+    width: 6rem;
+    padding: 0.15rem 0.35rem;
+    border: 1px solid var(--mat-sys-outline);
+    border-radius: 4px;
+    font: inherit;
+    color: inherit;
+    background: transparent;
+
+    &:focus {
+      outline: none;
+      border-color: var(--mat-sys-primary);
+    }
+  }
+
+  &__iva-select {
+    padding: 0.15rem 0.35rem;
+    border: 1px solid var(--mat-sys-outline);
+    border-radius: 4px;
+    font: inherit;
+    color: inherit;
+    background: transparent;
+
+    &:focus {
+      outline: none;
+      border-color: var(--mat-sys-primary);
+    }
+  }
+
   &__totales {
     align-self: flex-end;
     width: 100%;

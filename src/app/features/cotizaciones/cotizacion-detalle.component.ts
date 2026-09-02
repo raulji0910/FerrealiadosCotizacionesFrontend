@@ -36,11 +36,13 @@ export class CotizacionDetalleComponent implements OnInit {
     private readonly snackBar: MatSnackBar
   ) {}
 
+  readonly ivasDisponibles = [19, 5, 0];
+
   get columnas(): string[] {
     const esBorrador = this.cotizacion()?.estado === 'Borrador';
     return esBorrador
-      ? ['producto', 'proveedor', 'cantidad', 'precioUnitario', 'subtotal', 'quitar']
-      : ['producto', 'proveedor', 'cantidad', 'precioUnitario', 'subtotal'];
+      ? ['producto', 'proveedor', 'cantidad', 'precioUnitario', 'iva', 'subtotal', 'quitar']
+      : ['producto', 'proveedor', 'cantidad', 'precioUnitario', 'iva', 'subtotal'];
   }
 
   ngOnInit(): void {
@@ -73,13 +75,42 @@ export class CotizacionDetalleComponent implements OnInit {
     item.cantidad = valor;
 
     this.cotizacionService.actualizarCantidad(item.id, { cantidad: valor }).subscribe({
-      next: (actualizado) => {
-        item.cantidad = actualizado.cantidad;
-        item.subtotal = actualizado.subtotal;
-        this.recalcularTotal();
-      },
+      // La cantidad cambia la base gravable de la tarifa de IVA de este ítem, así que el
+      // desglose completo (y el total con descuento prorrateado) puede quedar desactualizado con
+      // un simple parche local — se recarga todo del servidor para que quede siempre consistente.
+      next: () => this.cargar(),
       error: (error) => {
         const mensaje = error?.error?.mensaje ?? 'No se pudo actualizar la cantidad.';
+        this.snackBar.open(mensaje, 'Cerrar', { duration: 4000 });
+      }
+    });
+  }
+
+  onCambioPrecioLocal(item: CotizacionItem, valor: number): void {
+    item.precioUnitario = valor;
+    item.subtotal = valor * item.cantidad;
+  }
+
+  guardarPrecio(item: CotizacionItem): void {
+    const valor = Math.max(0, item.precioUnitario);
+    item.precioUnitario = valor;
+
+    this.cotizacionService.actualizarPrecio(item.id, { precioUnitario: valor }).subscribe({
+      next: () => this.cargar(), // ver comentario en guardarCantidad
+      error: (error) => {
+        const mensaje = error?.error?.mensaje ?? 'No se pudo actualizar el precio.';
+        this.snackBar.open(mensaje, 'Cerrar', { duration: 4000 });
+      }
+    });
+  }
+
+  guardarIva(item: CotizacionItem, valor: number | null): void {
+    item.ivaSnapshot = valor;
+
+    this.cotizacionService.actualizarIva(item.id, { iva: valor }).subscribe({
+      next: () => this.cargar(), // ver comentario en guardarCantidad
+      error: (error) => {
+        const mensaje = error?.error?.mensaje ?? 'No se pudo actualizar el IVA.';
         this.snackBar.open(mensaje, 'Cerrar', { duration: 4000 });
       }
     });
@@ -91,15 +122,15 @@ export class CotizacionDetalleComponent implements OnInit {
         const cotizacion = this.cotizacion();
         if (!cotizacion) return;
 
-        const quedan = cotizacion.items.filter((i) => i.id !== item.id);
-        if (quedan.length === 0) {
+        const quedan = cotizacion.items.length - 1;
+        if (quedan === 0) {
           // El borrador se borró en el servidor al quedar sin ítems (ver CotizacionService).
           this.snackBar.open('Cotización eliminada: no quedaban ítems', 'Cerrar', { duration: 4000 });
           this.volver();
           return;
         }
 
-        this.cotizacion.set({ ...cotizacion, items: quedan, cantidadItems: quedan.length, total: quedan.reduce((acc, i) => acc + i.subtotal, 0) });
+        this.cargar(); // ver comentario en guardarCantidad
       },
       error: (error) => {
         const mensaje = error?.error?.mensaje ?? 'No se pudo quitar el ítem.';
@@ -182,11 +213,5 @@ export class CotizacionDetalleComponent implements OnInit {
         this.descargandoPdf.set(false);
       }
     });
-  }
-
-  private recalcularTotal(): void {
-    const cotizacion = this.cotizacion();
-    if (!cotizacion) return;
-    this.cotizacion.set({ ...cotizacion, total: cotizacion.items.reduce((acc, i) => acc + i.subtotal, 0) });
   }
 }

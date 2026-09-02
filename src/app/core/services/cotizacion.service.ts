@@ -5,6 +5,8 @@ import { environment } from '../../../environments/environment';
 import { PaginaResultado } from '../models/pagina.model';
 import {
   ActualizarCantidadItem,
+  ActualizarIvaItem,
+  ActualizarPrecioItem,
   CotizacionDetalle,
   CotizacionItem,
   CotizacionResumen,
@@ -49,6 +51,14 @@ export class CotizacionService {
 
   actualizarCantidad(itemId: number, dto: ActualizarCantidadItem): Observable<CotizacionItem> {
     return this.http.put<CotizacionItem>(`${this.baseUrl}/items/${itemId}`, dto);
+  }
+
+  actualizarPrecio(itemId: number, dto: ActualizarPrecioItem): Observable<CotizacionItem> {
+    return this.http.put<CotizacionItem>(`${this.baseUrl}/items/${itemId}/precio`, dto);
+  }
+
+  actualizarIva(itemId: number, dto: ActualizarIvaItem): Observable<CotizacionItem> {
+    return this.http.put<CotizacionItem>(`${this.baseUrl}/items/${itemId}/iva`, dto);
   }
 
   emitir(id: number, dto: EmitirCotizacion): Observable<CotizacionDetalle> {

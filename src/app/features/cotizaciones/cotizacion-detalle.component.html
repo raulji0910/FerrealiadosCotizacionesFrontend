@@ -110,7 +110,43 @@
 
       <ng-container matColumnDef="precioUnitario">
         <th mat-header-cell *matHeaderCellDef>Precio unitario</th>
-        <td mat-cell *matCellDef="let item" data-label="Precio unitario">{{ item.precioUnitario | currency: 'COP' : 'symbol' : '1.0-0' }}</td>
+        <td mat-cell *matCellDef="let item" data-label="Precio unitario">
+          @if (c.estado === 'Borrador') {
+            <input
+              type="number"
+              class="detalle__precio-input"
+              min="0"
+              step="1"
+              [ngModel]="item.precioUnitario"
+              (ngModelChange)="onCambioPrecioLocal(item, $event)"
+              (blur)="guardarPrecio(item)"
+              (keydown.enter)="guardarPrecio(item); precioInput.blur()"
+              #precioInput
+            />
+          } @else {
+            {{ item.precioUnitario | currency: 'COP' : 'symbol' : '1.0-0' }}
+          }
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="iva">
+        <th mat-header-cell *matHeaderCellDef>IVA</th>
+        <td mat-cell *matCellDef="let item" data-label="IVA">
+          @if (c.estado === 'Borrador') {
+            <select
+              class="detalle__iva-select"
+              [ngModel]="item.ivaSnapshot"
+              (ngModelChange)="guardarIva(item, $event)"
+            >
+              <option [ngValue]="null">Sin IVA</option>
+              @for (iva of ivasDisponibles; track iva) {
+                <option [ngValue]="iva">{{ iva }}%</option>
+              }
+            </select>
+          } @else {
+            {{ item.ivaSnapshot === null ? 'Sin IVA' : item.ivaSnapshot + '%' }}
+          }
+        </td>
       </ng-container>
 
       <ng-container matColumnDef="subtotal">
