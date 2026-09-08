@@ -29,6 +29,9 @@ export interface CotizacionItem {
   ivaSnapshot: number | null;
   cantidad: number;
   subtotal: number;
+  // Informativo, solo en la app (nunca en el PDF). Null si el ítem no tiene costo base
+  // congelado (marcado antes de que existiera este campo) o si ese costo es 0.
+  porcentajeGanancia: number | null;
 }
 
 export interface CotizacionResumen {

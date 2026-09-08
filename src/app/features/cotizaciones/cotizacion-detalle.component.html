@@ -129,6 +129,19 @@
         </td>
       </ng-container>
 
+      <ng-container matColumnDef="porcentajeGanancia">
+        <th mat-header-cell *matHeaderCellDef>% Ganancia</th>
+        <td
+          mat-cell
+          *matCellDef="let item"
+          data-label="% Ganancia"
+          class="detalle__ganancia"
+          [class.detalle__ganancia--negativa]="item.porcentajeGanancia !== null && item.porcentajeGanancia < 0"
+        >
+          {{ item.porcentajeGanancia === null ? '-' : item.porcentajeGanancia + '%' }}
+        </td>
+      </ng-container>
+
       <ng-container matColumnDef="iva">
         <th mat-header-cell *matHeaderCellDef>IVA</th>
         <td mat-cell *matCellDef="let item" data-label="IVA">

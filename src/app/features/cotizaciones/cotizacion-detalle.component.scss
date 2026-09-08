@@ -87,6 +87,15 @@
     }
   }
 
+  &__ganancia {
+    color: var(--mat-sys-on-surface-variant);
+
+    &--negativa {
+      color: var(--mat-sys-error);
+      font-weight: 600;
+    }
+  }
+
   &__totales {
     align-self: flex-end;
     width: 100%;
