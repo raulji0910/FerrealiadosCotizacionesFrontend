@@ -50,8 +50,12 @@ export class CotizacionDetalleComponent implements OnInit {
     this.cargar();
   }
 
-  cargar(): void {
-    this.cargando.set(true);
+  // mostrarCargando=false para los refrescos "silenciosos" que se disparan justo después de
+  // guardar un campo en la grilla (cantidad/precio/IVA): mostrar la barra de progreso ahí genera
+  // un salto de layout que se suma a la sensación de "se movió la pantalla" — con trackByItemId
+  // ya no hace falta ese indicador para una recarga que dura una fracción de segundo.
+  cargar(mostrarCargando = true): void {
+    if (mostrarCargando) this.cargando.set(true);
     this.cotizacionService.obtenerPorId(this.cotizacionId).subscribe({
       next: (cotizacion) => {
         this.cotizacion.set(cotizacion);
@@ -59,6 +63,16 @@ export class CotizacionDetalleComponent implements OnInit {
       },
       error: () => this.cargando.set(false)
     });
+  }
+
+  // Identifica cada fila por el id del ítem (no por posición ni por referencia de objeto) — así,
+  // cuando guardarCantidad/guardarPrecio/guardarIva recargan la cotización completa (necesario
+  // para recalcular el desglose de IVA), Angular reconoce que son las mismas filas de siempre y
+  // solo actualiza sus valores, en vez de destruir y recrear toda la tabla. Eso es lo que le
+  // quitaba el foco al usuario y lo mandaba de vuelta al principio de la grilla al editar un
+  // ítem lejos del inicio en una cotización larga.
+  trackByItemId(_index: number, item: CotizacionItem): number {
+    return item.id;
   }
 
   volver(): void {
@@ -78,7 +92,7 @@ export class CotizacionDetalleComponent implements OnInit {
       // La cantidad cambia la base gravable de la tarifa de IVA de este ítem, así que el
       // desglose completo (y el total con descuento prorrateado) puede quedar desactualizado con
       // un simple parche local — se recarga todo del servidor para que quede siempre consistente.
-      next: () => this.cargar(),
+      next: () => this.cargar(false),
       error: (error) => {
         const mensaje = error?.error?.mensaje ?? 'No se pudo actualizar la cantidad.';
         this.snackBar.open(mensaje, 'Cerrar', { duration: 4000 });
@@ -96,7 +110,7 @@ export class CotizacionDetalleComponent implements OnInit {
     item.precioUnitario = valor;
 
     this.cotizacionService.actualizarPrecio(item.id, { precioUnitario: valor }).subscribe({
-      next: () => this.cargar(), // ver comentario en guardarCantidad
+      next: () => this.cargar(false), // ver comentario en guardarCantidad
       error: (error) => {
         const mensaje = error?.error?.mensaje ?? 'No se pudo actualizar el precio.';
         this.snackBar.open(mensaje, 'Cerrar', { duration: 4000 });
@@ -108,7 +122,7 @@ export class CotizacionDetalleComponent implements OnInit {
     item.ivaSnapshot = valor;
 
     this.cotizacionService.actualizarIva(item.id, { iva: valor }).subscribe({
-      next: () => this.cargar(), // ver comentario en guardarCantidad
+      next: () => this.cargar(false), // ver comentario en guardarCantidad
       error: (error) => {
         const mensaje = error?.error?.mensaje ?? 'No se pudo actualizar el IVA.';
         this.snackBar.open(mensaje, 'Cerrar', { duration: 4000 });
@@ -130,7 +144,7 @@ export class CotizacionDetalleComponent implements OnInit {
           return;
         }
 
-        this.cargar(); // ver comentario en guardarCantidad
+        this.cargar(false); // ver comentario en guardarCantidad
       },
       error: (error) => {
         const mensaje = error?.error?.mensaje ?? 'No se pudo quitar el ítem.';
