@@ -237,12 +237,15 @@ export class ProductoDetalleComponent implements OnInit {
     });
   }
 
-  quitarMarca(cotizacionItemId: number): void {
-    this.cotizacionService.quitarItem(cotizacionItemId).subscribe({
-      next: () => this.cargar(),
-      error: (error) => {
-        const mensaje = error?.error?.mensaje ?? 'No se pudo quitar la marca.';
-        this.snackBar.open(mensaje, 'Cerrar', { duration: 4000 });
+  // Las marcas ya no se listan una por una en esta grilla (con muchas cotizaciones ligadas se
+  // vuelve inmanejable) — este botón lleva a la pantalla de Cotizaciones ya filtrada por este
+  // precio puntual (producto + proveedor), donde se ven como tabla y se pueden gestionar.
+  verCotizaciones(precio: PrecioProveedorVista): void {
+    this.router.navigate(['/cotizaciones'], {
+      queryParams: {
+        precioId: precio.precioId,
+        producto: this.producto()?.nombre ?? null,
+        proveedor: precio.proveedorNombre
       }
     });
   }

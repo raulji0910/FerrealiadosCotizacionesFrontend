@@ -25,11 +25,13 @@ export class CotizacionService {
     estado: EstadoCotizacion | undefined,
     texto: string | undefined,
     pagina: number,
-    tamanoPagina: number
+    tamanoPagina: number,
+    precioId?: number
   ): Observable<PaginaResultado<CotizacionResumen>> {
     const params: Record<string, string> = { pagina: String(pagina), tamanoPagina: String(tamanoPagina) };
     if (estado) params['estado'] = estado;
     if (texto) params['texto'] = texto;
+    if (precioId) params['precioId'] = String(precioId);
     return this.http.get<PaginaResultado<CotizacionResumen>>(this.baseUrl, { params });
   }
 

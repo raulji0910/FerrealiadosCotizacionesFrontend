@@ -104,13 +104,15 @@
     min-width: 9rem;
   }
 
-  &__chip-marca {
-    --mat-chip-label-text-color: var(--mat-sys-on-secondary-container);
-    background-color: var(--mat-sys-secondary-container);
+  &__ver-cotizaciones {
+    font-size: 0.8rem;
+    line-height: 1.6rem;
 
-    &--emitida {
-      --mat-chip-label-text-color: var(--mat-sys-on-tertiary-container);
-      background-color: var(--mat-sys-tertiary-container);
+    mat-icon {
+      font-size: 1.1rem;
+      width: 1.1rem;
+      height: 1.1rem;
+      margin-right: 0.15rem;
     }
   }
 

@@ -1,5 +1,5 @@
 import { Component, OnInit, signal } from '@angular/core';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CurrencyPipe, DatePipe } from '@angular/common';
 import { MatTableModule } from '@angular/material/table';
@@ -44,12 +44,30 @@ export class CotizacionesListComponent implements OnInit {
   texto = '';
   estado: EstadoCotizacion | '' = '';
 
+  precioId: number | null = null;
+  filtroProducto: string | null = null;
+  filtroProveedor: string | null = null;
+
   constructor(
     private readonly cotizacionService: CotizacionService,
-    private readonly router: Router
+    private readonly router: Router,
+    private readonly route: ActivatedRoute
   ) {}
 
   ngOnInit(): void {
+    const params = this.route.snapshot.queryParamMap;
+    const precioId = params.get('precioId');
+    this.precioId = precioId ? Number(precioId) : null;
+    this.filtroProducto = params.get('producto');
+    this.filtroProveedor = params.get('proveedor');
+    this.buscar();
+  }
+
+  quitarFiltroPrecio(): void {
+    this.precioId = null;
+    this.filtroProducto = null;
+    this.filtroProveedor = null;
+    this.router.navigate(['/cotizaciones']);
     this.buscar();
   }
 
@@ -71,7 +89,13 @@ export class CotizacionesListComponent implements OnInit {
   private cargarPagina(): void {
     this.cargando.set(true);
     this.cotizacionService
-      .buscar(this.estado || undefined, this.texto || undefined, this.pageIndex() + 1, this.pageSize())
+      .buscar(
+        this.estado || undefined,
+        this.texto || undefined,
+        this.pageIndex() + 1,
+        this.pageSize(),
+        this.precioId ?? undefined
+      )
       .subscribe({
         next: (resultado) => {
           this.cotizaciones.set(resultado.items);

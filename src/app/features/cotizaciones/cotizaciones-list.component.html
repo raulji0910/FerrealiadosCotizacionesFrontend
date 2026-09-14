@@ -3,6 +3,23 @@
     <h2>Cotizaciones</h2>
   </div>
 
+  @if (precioId) {
+    <div class="cotizaciones__filtro-activo">
+      <mat-icon>filter_alt</mat-icon>
+      <span>
+        Mostrando cotizaciones de:
+        <strong>{{ filtroProducto || 'producto' }}</strong>
+        @if (filtroProveedor) {
+          — {{ filtroProveedor }}
+        }
+      </span>
+      <button mat-button (click)="quitarFiltroPrecio()">
+        <mat-icon>close</mat-icon>
+        Quitar filtro
+      </button>
+    </div>
+  }
+
   <div class="cotizaciones__filtros">
     <mat-form-field appearance="outline" class="cotizaciones__buscador">
       <mat-label>Buscar por código o cliente</mat-label>
