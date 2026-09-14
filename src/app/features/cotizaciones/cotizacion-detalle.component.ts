@@ -41,8 +41,8 @@ export class CotizacionDetalleComponent implements OnInit {
   get columnas(): string[] {
     const esBorrador = this.cotizacion()?.estado === 'Borrador';
     return esBorrador
-      ? ['producto', 'proveedor', 'cantidad', 'precioUnitario', 'porcentajeGanancia', 'iva', 'subtotal', 'quitar']
-      : ['producto', 'proveedor', 'cantidad', 'precioUnitario', 'porcentajeGanancia', 'iva', 'subtotal'];
+      ? ['producto', 'proveedor', 'cantidad', 'costoBase', 'precioUnitario', 'porcentajeGanancia', 'iva', 'subtotal', 'quitar']
+      : ['producto', 'proveedor', 'cantidad', 'costoBase', 'precioUnitario', 'porcentajeGanancia', 'iva', 'subtotal'];
   }
 
   ngOnInit(): void {
