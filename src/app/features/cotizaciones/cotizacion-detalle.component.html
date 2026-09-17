@@ -123,7 +123,7 @@
               type="number"
               class="detalle__precio-input"
               min="0"
-              step="1"
+              step="0.01"
               [ngModel]="item.precioUnitario"
               (ngModelChange)="onCambioPrecioLocal(item, $event)"
               (blur)="guardarPrecio(item)"

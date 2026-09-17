@@ -34,7 +34,7 @@
     <div class="dialogo-form__campo dialogo-form__iva">
       <mat-form-field appearance="outline" class="dialogo-form__iva-costo">
         <mat-label>Costo con IVA</mat-label>
-        <input matInput type="number" [(ngModel)]="costoConIva" name="costoConIva" (ngModelChange)="onCambioCostoConIva()" />
+        <input matInput type="number" step="0.01" [(ngModel)]="costoConIva" name="costoConIva" (ngModelChange)="onCambioCostoConIva()" />
         <span matTextPrefix>$&nbsp;</span>
       </mat-form-field>
 
@@ -50,7 +50,7 @@
 
     <mat-form-field appearance="outline" class="dialogo-form__campo">
       <mat-label>Costo sin IVA</mat-label>
-      <input matInput type="number" [(ngModel)]="costo" name="costo" (ngModelChange)="onCambioCosto()" />
+      <input matInput type="number" step="0.01" [(ngModel)]="costo" name="costo" (ngModelChange)="onCambioCosto()" />
       <span matTextPrefix>$&nbsp;</span>
     </mat-form-field>
   }
