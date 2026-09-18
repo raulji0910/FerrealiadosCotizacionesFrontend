@@ -111,7 +111,7 @@
       <ng-container matColumnDef="costoBase">
         <th mat-header-cell *matHeaderCellDef>Costo</th>
         <td mat-cell *matCellDef="let item" data-label="Costo" class="detalle__costo-base">
-          {{ item.costoBase === null ? '-' : (item.costoBase | currency: 'COP' : 'symbol' : '1.0-0') }}
+          {{ item.costoBase === null ? '-' : (item.costoBase | currency: 'COP' : 'symbol' : '1.0-3') }}
         </td>
       </ng-container>
 
@@ -131,7 +131,7 @@
               #precioInput
             />
           } @else {
-            {{ item.precioUnitario | currency: 'COP' : 'symbol' : '1.0-0' }}
+            {{ item.precioUnitario | currency: 'COP' : 'symbol' : '1.0-3' }}
           }
         </td>
       </ng-container>
@@ -171,7 +171,7 @@
 
       <ng-container matColumnDef="subtotal">
         <th mat-header-cell *matHeaderCellDef>Subtotal</th>
-        <td mat-cell *matCellDef="let item" data-label="Subtotal">{{ item.subtotal | currency: 'COP' : 'symbol' : '1.0-0' }}</td>
+        <td mat-cell *matCellDef="let item" data-label="Subtotal">{{ item.subtotal | currency: 'COP' : 'symbol' : '1.0-3' }}</td>
       </ng-container>
 
       <ng-container matColumnDef="quitar">
@@ -194,27 +194,27 @@
     <div class="detalle__totales">
       <div class="detalle__totales-fila">
         <span>Subtotal ítems</span>
-        <span>{{ c.total | currency: 'COP' : 'symbol' : '1.0-0' }}</span>
+        <span>{{ c.total | currency: 'COP' : 'symbol' : '1.0-3' }}</span>
       </div>
       @if (c.descuento > 0) {
         <div class="detalle__totales-fila">
           <span>Descuento</span>
-          <span>- {{ c.descuento | currency: 'COP' : 'symbol' : '1.0-0' }}</span>
+          <span>- {{ c.descuento | currency: 'COP' : 'symbol' : '1.0-3' }}</span>
         </div>
         <div class="detalle__totales-fila">
           <span>Subtotal</span>
-          <span>{{ c.subtotal | currency: 'COP' : 'symbol' : '1.0-0' }}</span>
+          <span>{{ c.subtotal | currency: 'COP' : 'symbol' : '1.0-3' }}</span>
         </div>
       }
       @for (tramo of c.ivaDesglose; track tramo.tarifa) {
         <div class="detalle__totales-fila">
           <span>IVA ({{ tramo.tarifa }}%)</span>
-          <span>{{ tramo.valor | currency: 'COP' : 'symbol' : '1.0-0' }}</span>
+          <span>{{ tramo.valor | currency: 'COP' : 'symbol' : '1.0-3' }}</span>
         </div>
       }
       <div class="detalle__totales-fila detalle__totales-fila--total">
         <span>TOTAL</span>
-        <span>{{ c.totalGeneral | currency: 'COP' : 'symbol' : '1.0-0' }}</span>
+        <span>{{ c.totalGeneral | currency: 'COP' : 'symbol' : '1.0-3' }}</span>
       </div>
     </div>
   }
