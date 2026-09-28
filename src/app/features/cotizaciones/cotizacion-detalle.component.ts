@@ -1,7 +1,7 @@
 import { Component, OnInit, signal } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { CurrencyPipe, DatePipe } from '@angular/common';
+import { CurrencyPipe, DatePipe, Location } from '@angular/common';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -30,7 +30,7 @@ export class CotizacionDetalleComponent implements OnInit {
 
   constructor(
     private readonly route: ActivatedRoute,
-    private readonly router: Router,
+    private readonly location: Location,
     private readonly cotizacionService: CotizacionService,
     private readonly dialog: MatDialog,
     private readonly snackBar: MatSnackBar
@@ -76,7 +76,10 @@ export class CotizacionDetalleComponent implements OnInit {
   }
 
   volver(): void {
-    this.router.navigate(['/cotizaciones']);
+    // Location.back() en vez de una ruta fija: así se regresa exactamente a la URL de la que se
+    // vino (con el texto/estado/página que tenía la lista, o el filtro por precio si se llegó
+    // desde "Ver cotizaciones" en producto-detalle), en vez de resetear la búsqueda.
+    this.location.back();
   }
 
   onCambioCantidadLocal(item: CotizacionItem, valor: number): void {

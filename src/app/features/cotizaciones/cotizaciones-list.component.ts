@@ -55,31 +55,65 @@ export class CotizacionesListComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    // El estado de búsqueda vive en la URL (query params) para que, al entrar al detalle de una
+    // cotización y volver (botón "Cotizaciones" o el "atrás" del navegador), se conserve tal cual
+    // — ver volver() en cotizacion-detalle.component.ts, que usa Location.back().
     const params = this.route.snapshot.queryParamMap;
+    this.texto = params.get('texto') ?? '';
+    this.estado = (params.get('estado') as EstadoCotizacion | null) ?? '';
+
+    const pagina = params.get('pagina');
+    const tamanoPagina = params.get('tamanoPagina');
+    if (pagina) this.pageIndex.set(Math.max(0, Number(pagina) - 1));
+    if (tamanoPagina) this.pageSize.set(Number(tamanoPagina));
+
     const precioId = params.get('precioId');
     this.precioId = precioId ? Number(precioId) : null;
     this.filtroProducto = params.get('producto');
     this.filtroProveedor = params.get('proveedor');
-    this.buscar();
+
+    this.cargarPagina(); // no buscar(): eso resetearía a la página 1 perdiendo la restaurada de la URL
   }
 
   quitarFiltroPrecio(): void {
     this.precioId = null;
     this.filtroProducto = null;
     this.filtroProveedor = null;
-    this.router.navigate(['/cotizaciones']);
-    this.buscar();
+    this.pageIndex.set(0);
+    this.actualizarUrl();
+    this.cargarPagina();
   }
 
   buscar(): void {
     this.pageIndex.set(0);
+    this.actualizarUrl();
     this.cargarPagina();
   }
 
   alCambiarPagina(evento: PageEvent): void {
     this.pageIndex.set(evento.pageIndex);
     this.pageSize.set(evento.pageSize);
+    this.actualizarUrl();
     this.cargarPagina();
+  }
+
+  // replaceUrl: true evita apilar una entrada de historial por cada tecla escrita en el buscador
+  // — el botón "atrás" del navegador debe volver a la pantalla anterior a esta lista, no a un
+  // estado de búsqueda intermedio.
+  private actualizarUrl(): void {
+    this.router.navigate([], {
+      relativeTo: this.route,
+      replaceUrl: true,
+      queryParams: {
+        texto: this.texto || null,
+        estado: this.estado || null,
+        pagina: this.pageIndex() + 1,
+        tamanoPagina: this.pageSize(),
+        precioId: this.precioId,
+        producto: this.filtroProducto,
+        proveedor: this.filtroProveedor
+      }
+    });
   }
 
   abrir(cotizacion: CotizacionResumen): void {

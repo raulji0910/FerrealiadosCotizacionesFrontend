@@ -8,7 +8,7 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { CurrencyPipe, DatePipe } from '@angular/common';
+import { CurrencyPipe, DatePipe, Location } from '@angular/common';
 import { ProductoService } from '../../core/services/producto.service';
 import { ProveedorService } from '../../core/services/proveedor.service';
 import { CotizacionService } from '../../core/services/cotizacion.service';
@@ -48,6 +48,7 @@ export class ProductoDetalleComponent implements OnInit {
   constructor(
     private readonly route: ActivatedRoute,
     private readonly router: Router,
+    private readonly location: Location,
     private readonly productoService: ProductoService,
     private readonly proveedorService: ProveedorService,
     private readonly cotizacionService: CotizacionService,
@@ -251,6 +252,9 @@ export class ProductoDetalleComponent implements OnInit {
   }
 
   volver(): void {
-    this.router.navigate(['/productos']);
+    // Location.back() en vez de una ruta fija: regresa a la URL exacta de la que se vino (con el
+    // texto/página que tenía la lista de Productos, o la lista de Alertas si se llegó desde ahí),
+    // en vez de resetear la búsqueda. Ver el mismo patrón en cotizacion-detalle.component.ts.
+    this.location.back();
   }
 }

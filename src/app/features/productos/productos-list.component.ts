@@ -1,6 +1,6 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -50,24 +50,49 @@ export class ProductosListComponent implements OnInit {
     private readonly productoService: ProductoService,
     private readonly proveedorService: ProveedorService,
     private readonly router: Router,
+    private readonly route: ActivatedRoute,
     private readonly dialog: MatDialog,
     private readonly snackBar: MatSnackBar
   ) {}
 
   ngOnInit(): void {
-    this.buscar();
+    // Igual que en cotizaciones-list: el estado de búsqueda vive en la URL para que "volver" desde
+    // el detalle (Location.back() en producto-detalle.component.ts) lo conserve tal cual.
+    const params = this.route.snapshot.queryParamMap;
+    this.texto = params.get('texto') ?? '';
+
+    const pagina = params.get('pagina');
+    const tamanoPagina = params.get('tamanoPagina');
+    if (pagina) this.pageIndex.set(Math.max(0, Number(pagina) - 1));
+    if (tamanoPagina) this.pageSize.set(Number(tamanoPagina));
+
+    this.cargarPagina(); // no buscar(): resetearía a la página 1 perdiendo la restaurada de la URL
     this.proveedorService.listarActivos().subscribe((proveedores) => this.proveedores.set(proveedores));
   }
 
   buscar(): void {
     this.pageIndex.set(0);
+    this.actualizarUrl();
     this.cargarPagina();
   }
 
   alCambiarPagina(evento: PageEvent): void {
     this.pageIndex.set(evento.pageIndex);
     this.pageSize.set(evento.pageSize);
+    this.actualizarUrl();
     this.cargarPagina();
+  }
+
+  private actualizarUrl(): void {
+    this.router.navigate([], {
+      relativeTo: this.route,
+      replaceUrl: true,
+      queryParams: {
+        texto: this.texto || null,
+        pagina: this.pageIndex() + 1,
+        tamanoPagina: this.pageSize()
+      }
+    });
   }
 
   private cargarPagina(): void {
