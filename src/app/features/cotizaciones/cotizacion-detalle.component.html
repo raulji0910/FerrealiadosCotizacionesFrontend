@@ -145,7 +145,23 @@
           class="detalle__ganancia"
           [class.detalle__ganancia--negativa]="item.porcentajeGanancia !== null && item.porcentajeGanancia < 0"
         >
-          {{ item.porcentajeGanancia === null ? '-' : item.porcentajeGanancia + '%' }}
+          @if (c.estado === 'Borrador' && tieneCostoBaseParaAjuste(item)) {
+            <div class="detalle__ganancia-inline">
+              <input
+                type="number"
+                class="detalle__ganancia-input"
+                step="0.01"
+                [ngModel]="item.porcentajeGanancia"
+                (ngModelChange)="onCambioPorcentajeGananciaLocal(item, $event)"
+                (blur)="guardarPorcentajeGanancia(item)"
+                (keydown.enter)="guardarPorcentajeGanancia(item); gananciaInput.blur()"
+                #gananciaInput
+              />
+              <span>%</span>
+            </div>
+          } @else {
+            {{ item.porcentajeGanancia === null ? '-' : item.porcentajeGanancia + '%' }}
+          }
         </td>
       </ng-container>
 

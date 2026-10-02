@@ -121,6 +121,36 @@ export class CotizacionDetalleComponent implements OnInit {
     });
   }
 
+  // Camino inverso a precio unitario: se escribe el % de ganancia deseado y el backend recalcula
+  // el precio unitario a partir del costo base congelado. Vista previa local igual que en los
+  // demás campos editables, para que cantidad/subtotal no se vean desfasados mientras se escribe.
+  // Mismo guard que el backend (CalcularPorcentajeGanancia / ActualizarPorcentajeGananciaItemAsync):
+  // sin costo base, o con costo base 0, no hay desde dónde calcular el precio.
+  tieneCostoBaseParaAjuste(item: CotizacionItem): boolean {
+    return item.costoBase !== null && item.costoBase !== 0;
+  }
+
+  onCambioPorcentajeGananciaLocal(item: CotizacionItem, valor: number): void {
+    item.porcentajeGanancia = valor;
+    if (this.tieneCostoBaseParaAjuste(item)) {
+      const precio = Math.round(item.costoBase! * (1 + valor / 100) * 100) / 100;
+      item.precioUnitario = precio;
+      item.subtotal = precio * item.cantidad;
+    }
+  }
+
+  guardarPorcentajeGanancia(item: CotizacionItem): void {
+    if (!this.tieneCostoBaseParaAjuste(item)) return; // sin costo base el campo queda deshabilitado, ver el html
+
+    this.cotizacionService.actualizarPorcentajeGanancia(item.id, { porcentajeGanancia: item.porcentajeGanancia ?? 0 }).subscribe({
+      next: () => this.cargar(false), // ver comentario en guardarCantidad
+      error: (error) => {
+        const mensaje = error?.error?.mensaje ?? 'No se pudo actualizar el % de ganancia.';
+        this.snackBar.open(mensaje, 'Cerrar', { duration: 4000 });
+      }
+    });
+  }
+
   guardarIva(item: CotizacionItem, valor: number | null): void {
     item.ivaSnapshot = valor;
 

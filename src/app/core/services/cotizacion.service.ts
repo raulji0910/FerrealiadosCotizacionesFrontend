@@ -6,6 +6,7 @@ import { PaginaResultado } from '../models/pagina.model';
 import {
   ActualizarCantidadItem,
   ActualizarIvaItem,
+  ActualizarPorcentajeGananciaItem,
   ActualizarPrecioItem,
   CotizacionDetalle,
   CotizacionItem,
@@ -57,6 +58,10 @@ export class CotizacionService {
 
   actualizarPrecio(itemId: number, dto: ActualizarPrecioItem): Observable<CotizacionItem> {
     return this.http.put<CotizacionItem>(`${this.baseUrl}/items/${itemId}/precio`, dto);
+  }
+
+  actualizarPorcentajeGanancia(itemId: number, dto: ActualizarPorcentajeGananciaItem): Observable<CotizacionItem> {
+    return this.http.put<CotizacionItem>(`${this.baseUrl}/items/${itemId}/porcentaje-ganancia`, dto);
   }
 
   actualizarIva(itemId: number, dto: ActualizarIvaItem): Observable<CotizacionItem> {

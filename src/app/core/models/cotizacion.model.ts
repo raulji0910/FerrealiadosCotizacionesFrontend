@@ -88,6 +88,12 @@ export interface ActualizarPrecioItem {
   precioUnitario: number;
 }
 
+// Camino inverso a ActualizarPrecioItem: se manda el % de ganancia deseado y el backend recalcula
+// precioUnitario a partir de costoBase — ambos campos quedan editables, cada uno recalcula el otro.
+export interface ActualizarPorcentajeGananciaItem {
+  porcentajeGanancia: number;
+}
+
 export interface ActualizarIvaItem {
   iva: number | null;
 }
