@@ -24,7 +24,13 @@
     <mat-form-field appearance="outline" class="cotizaciones__buscador">
       <mat-label>Buscar por código o cliente</mat-label>
       <input matInput [(ngModel)]="texto" (ngModelChange)="buscar()" />
-      <mat-icon matSuffix>search</mat-icon>
+      @if (texto) {
+        <button matSuffix mat-icon-button aria-label="Limpiar búsqueda" (click)="limpiarBusqueda()">
+          <mat-icon>close</mat-icon>
+        </button>
+      } @else {
+        <mat-icon matSuffix>search</mat-icon>
+      }
     </mat-form-field>
 
     <mat-form-field appearance="outline" class="cotizaciones__estado">

@@ -90,6 +90,11 @@ export class CotizacionesListComponent implements OnInit {
     this.cargarPagina();
   }
 
+  limpiarBusqueda(): void {
+    this.texto = '';
+    this.buscar();
+  }
+
   alCambiarPagina(evento: PageEvent): void {
     this.pageIndex.set(evento.pageIndex);
     this.pageSize.set(evento.pageSize);
