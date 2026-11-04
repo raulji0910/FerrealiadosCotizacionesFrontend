@@ -7,7 +7,7 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { UsuarioService } from '../../core/services/usuario.service';
-import { Usuario } from '../../core/models/usuario.model';
+import { Rol, Usuario } from '../../core/models/usuario.model';
 import { UsuarioFormDialogComponent } from './usuario-form-dialog.component';
 
 @Component({
@@ -22,11 +22,21 @@ export class UsuariosListComponent implements OnInit {
   readonly usuarios = signal<Usuario[]>([]);
   readonly cargando = signal(false);
 
+  private readonly etiquetasRol: Record<Rol, string> = {
+    Admin: 'Administrador',
+    Cotizador: 'Cotizador',
+    Conciliador: 'Conciliador'
+  };
+
   constructor(
     private readonly usuarioService: UsuarioService,
     private readonly dialog: MatDialog,
     private readonly snackBar: MatSnackBar
   ) {}
+
+  etiquetaRol(rol: Rol): string {
+    return this.etiquetasRol[rol];
+  }
 
   ngOnInit(): void {
     this.cargar();

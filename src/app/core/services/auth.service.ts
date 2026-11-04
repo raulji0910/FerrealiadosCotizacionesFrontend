@@ -56,6 +56,16 @@ export class AuthService {
     return this.sesion()?.rol === 'Admin';
   }
 
+  // El Conciliador solo entra al módulo de conciliación; no ve productos, cotizaciones, etc.
+  get esConciliador(): boolean {
+    return this.sesion()?.rol === 'Conciliador';
+  }
+
+  // Pantalla a la que se llega al entrar o cuando se intenta abrir una sin permiso.
+  get rutaInicio(): string {
+    return this.esConciliador ? '/conciliacion' : '/productos';
+  }
+
   private leerSesionValida(): LoginResponse | null {
     const crudo = localStorage.getItem(CLAVE_STORAGE);
     if (!crudo) return null;

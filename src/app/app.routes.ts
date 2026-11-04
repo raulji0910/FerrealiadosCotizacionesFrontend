@@ -1,5 +1,7 @@
+import { inject } from '@angular/core';
 import { Routes } from '@angular/router';
-import { authGuard, adminGuard } from './core/guards/auth.guard';
+import { authGuard, adminGuard, cotizacionGuard } from './core/guards/auth.guard';
+import { AuthService } from './core/services/auth.service';
 
 export const routes: Routes = [
   {
@@ -11,34 +13,45 @@ export const routes: Routes = [
     loadComponent: () => import('./layout/layout.component').then((m) => m.LayoutComponent),
     canActivate: [authGuard],
     children: [
-      { path: '', redirectTo: 'productos', pathMatch: 'full' },
+      { path: '', redirectTo: () => inject(AuthService).rutaInicio, pathMatch: 'full' },
       {
         path: 'productos',
-        loadComponent: () => import('./features/productos/productos-list.component').then((m) => m.ProductosListComponent)
+        loadComponent: () => import('./features/productos/productos-list.component').then((m) => m.ProductosListComponent),
+        canActivate: [cotizacionGuard]
       },
       {
         path: 'productos/:id',
-        loadComponent: () => import('./features/productos/producto-detalle.component').then((m) => m.ProductoDetalleComponent)
+        loadComponent: () => import('./features/productos/producto-detalle.component').then((m) => m.ProductoDetalleComponent),
+        canActivate: [cotizacionGuard]
       },
       {
         path: 'proveedores',
-        loadComponent: () => import('./features/proveedores/proveedores-list.component').then((m) => m.ProveedoresListComponent)
+        loadComponent: () => import('./features/proveedores/proveedores-list.component').then((m) => m.ProveedoresListComponent),
+        canActivate: [cotizacionGuard]
       },
       {
         path: 'alertas',
-        loadComponent: () => import('./features/alertas/alertas.component').then((m) => m.AlertasComponent)
+        loadComponent: () => import('./features/alertas/alertas.component').then((m) => m.AlertasComponent),
+        canActivate: [cotizacionGuard]
       },
       {
         path: 'clientes',
-        loadComponent: () => import('./features/clientes/clientes-list.component').then((m) => m.ClientesListComponent)
+        loadComponent: () => import('./features/clientes/clientes-list.component').then((m) => m.ClientesListComponent),
+        canActivate: [cotizacionGuard]
       },
       {
         path: 'cotizaciones',
-        loadComponent: () => import('./features/cotizaciones/cotizaciones-list.component').then((m) => m.CotizacionesListComponent)
+        loadComponent: () => import('./features/cotizaciones/cotizaciones-list.component').then((m) => m.CotizacionesListComponent),
+        canActivate: [cotizacionGuard]
       },
       {
         path: 'cotizaciones/:id',
-        loadComponent: () => import('./features/cotizaciones/cotizacion-detalle.component').then((m) => m.CotizacionDetalleComponent)
+        loadComponent: () => import('./features/cotizaciones/cotizacion-detalle.component').then((m) => m.CotizacionDetalleComponent),
+        canActivate: [cotizacionGuard]
+      },
+      {
+        path: 'conciliacion',
+        loadComponent: () => import('./features/conciliacion/conciliacion.component').then((m) => m.ConciliacionComponent)
       },
       {
         path: 'configuracion',

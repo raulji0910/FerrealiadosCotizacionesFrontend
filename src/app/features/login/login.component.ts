@@ -36,7 +36,7 @@ export class LoginComponent {
     this.authService.login({ email: this.email, password: this.password }).subscribe({
       next: () => {
         this.cargando.set(false);
-        this.router.navigate(['/productos']);
+        this.router.navigate([this.authService.rutaInicio]);
       },
       error: () => {
         this.cargando.set(false);
