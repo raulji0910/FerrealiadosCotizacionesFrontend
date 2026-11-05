@@ -11,12 +11,16 @@ import { MatInputModule } from '@angular/material/input';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatSortModule, Sort } from '@angular/material/sort';
 import { MatDialog } from '@angular/material/dialog';
 import { ConciliacionService } from '../../core/services/conciliacion.service';
 import { Conciliacion, EstadoConciliacion, FacturaConciliada, OrdenPendiente } from '../../core/models/conciliacion.model';
 import { ConciliacionDetalleDialogComponent } from './conciliacion-detalle-dialog.component';
 
 type Filtro = 'Todas' | EstadoConciliacion | 'OrdenesPendientes';
+type ValorOrden = string | number | null;
+
+const sinOrden: Sort = { active: '', direction: '' };
 
 interface Tarjeta {
   filtro: Filtro;
@@ -47,7 +51,8 @@ interface Tarjeta {
     MatInputModule,
     MatDatepickerModule,
     MatPaginatorModule,
-    MatTooltipModule
+    MatTooltipModule,
+    MatSortModule
   ],
   templateUrl: './conciliacion.component.html',
   styleUrl: './conciliacion.component.scss'
@@ -72,6 +77,11 @@ export class ConciliacionComponent implements OnInit {
   readonly proveedor = signal('');
   readonly numeroOc = signal('');
   readonly numeroFactura = signal('');
+
+  // Orden elegido con clic en los encabezados (sin orden = como llega de la API). Se guarda aparte
+  // por tabla para que no se pierda al pasar de las facturas a las OC sin factura y volver.
+  readonly ordenFacturas = signal<Sort>(sinOrden);
+  readonly ordenOrdenes = signal<Sort>(sinOrden);
 
   readonly pageIndex = signal(0);
   readonly pageSize = signal(25);
@@ -137,15 +147,20 @@ export class ConciliacionComponent implements OnInit {
   readonly facturasFiltradas = computed(() => {
     const filtro = this.filtro();
     const facturas = this.facturasBuscadas();
-    return filtro === 'Todas' ? facturas : facturas.filter((f) => f.estado === filtro);
+    const filtradas = filtro === 'Todas' ? facturas : facturas.filter((f) => f.estado === filtro);
+    return this.ordenarLista(filtradas, this.ordenFacturas(), (f, columna) => this.valorFactura(f, columna));
   });
 
+  private readonly ordenesOrdenadas = computed(() =>
+    this.ordenarLista(this.ordenesBuscadas(), this.ordenOrdenes(), (o, columna) => this.valorOrden(o, columna))
+  );
+
   readonly totalFilas = computed(() =>
-    this.filtro() === 'OrdenesPendientes' ? this.ordenesBuscadas().length : this.facturasFiltradas().length
+    this.filtro() === 'OrdenesPendientes' ? this.ordenesOrdenadas().length : this.facturasFiltradas().length
   );
 
   readonly paginaFacturas = computed(() => this.paginar(this.facturasFiltradas()));
-  readonly paginaOrdenes = computed(() => this.paginar(this.ordenesBuscadas()));
+  readonly paginaOrdenes = computed(() => this.paginar(this.ordenesOrdenadas()));
 
   constructor(
     private readonly conciliacionService: ConciliacionService,
@@ -191,6 +206,11 @@ export class ConciliacionComponent implements OnInit {
     this.pageIndex.set(0);
   }
 
+  ordenar(tabla: 'facturas' | 'ordenes', orden: Sort): void {
+    (tabla === 'facturas' ? this.ordenFacturas : this.ordenOrdenes).set(orden);
+    this.pageIndex.set(0);
+  }
+
   alCambiarPagina(evento: PageEvent): void {
     this.pageIndex.set(evento.pageIndex);
     this.pageSize.set(evento.pageSize);
@@ -217,6 +237,48 @@ export class ConciliacionComponent implements OnInit {
   diasDesde(orden: OrdenPendiente): number {
     const fecha = new Date(`${orden.fecha}T00:00:00`);
     return Math.max(0, Math.floor((Date.now() - fecha.getTime()) / 86_400_000));
+  }
+
+  // Los vacíos (factura sin OC, diferencia de una que cuadra) van siempre al final, en los dos sentidos.
+  private ordenarLista<T>(lista: T[], orden: Sort, valor: (item: T, columna: string) => ValorOrden): T[] {
+    if (!orden.active || !orden.direction) return lista;
+    const signo = orden.direction === 'asc' ? 1 : -1;
+    return [...lista].sort((a, b) => {
+      const va = valor(a, orden.active);
+      const vb = valor(b, orden.active);
+      if (va === null || vb === null) return va === vb ? 0 : va === null ? 1 : -1;
+      const comparacion =
+        typeof va === 'number' && typeof vb === 'number'
+          ? va - vb
+          : String(va).localeCompare(String(vb), 'es', { numeric: true, sensitivity: 'base' });
+      return comparacion * signo;
+    });
+  }
+
+  private valorFactura(f: FacturaConciliada, columna: string): ValorOrden {
+    switch (columna) {
+      case 'fecha': return f.fechaEmision;
+      case 'proveedor': return f.nombreProveedor;
+      case 'factura': return f.numero;
+      case 'subtotal': return f.subtotal;
+      case 'iva': return f.iva;
+      case 'oc': return f.ordenCompraNumero;
+      case 'diferencia': return f.estado === 'Cuadra' ? null : f.diferenciaSubtotal;
+      case 'estado': return this.etiquetas[f.estado];
+      default: return null;
+    }
+  }
+
+  private valorOrden(o: OrdenPendiente, columna: string): ValorOrden {
+    switch (columna) {
+      case 'fecha': return o.fecha;
+      case 'dias': return this.diasDesde(o);
+      case 'proveedor': return o.nombreProveedor;
+      case 'oc': return o.numero;
+      case 'subtotal': return o.subtotal;
+      case 'saldo': return o.saldoSubtotal;
+      default: return null;
+    }
   }
 
   private paginar<T>(lista: T[]): T[] {

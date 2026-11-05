@@ -178,6 +178,11 @@
       background-color: var(--mat-sys-surface-container-low);
       font-weight: 600;
     }
+
+    // Encabezados de montos alineados a la derecha también con la flecha de orden.
+    th.conciliacion__num .mat-sort-header-container {
+      justify-content: flex-end;
+    }
   }
 
   &__vacio {
