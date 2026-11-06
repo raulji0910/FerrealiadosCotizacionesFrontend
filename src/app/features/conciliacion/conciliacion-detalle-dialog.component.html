@@ -33,12 +33,19 @@
       <div class="detalle__dato">
         <span>Orden de compra</span>
         @if (d.conciliacion.ordenCompraNumero) {
-          <strong>OC {{ d.conciliacion.ordenCompraNumero }}</strong>
+          <strong>OC {{ d.conciliacion.ordenesCompra.join(', ') }}</strong>
           <small>{{ d.conciliacion.ordenCompraFecha | date: 'dd/MM/yyyy' }}</small>
         } @else {
           <strong>—</strong>
         }
       </div>
+      @if (d.conciliacion.facturaCompraNumero) {
+        <div class="detalle__dato">
+          <span>Cruzada vía</span>
+          <strong>FC {{ d.conciliacion.facturaCompraNumero }} de World Office</strong>
+          <small>OC escrita por Contabilidad</small>
+        </div>
+      }
       @if (d.conciliacion.referenciaOrden) {
         <div class="detalle__dato">
           <span>OC citada en el XML</span>
@@ -85,7 +92,7 @@
         @if (d.conciliacion.ordenCompraNumero) {
           <h3>
             <mat-icon>assignment</mat-icon>
-            OC {{ d.conciliacion.ordenCompraNumero }} · {{ d.renglonesOrdenCompra.length }}
+            OC {{ d.conciliacion.ordenesCompra.join(', ') }} · {{ d.renglonesOrdenCompra.length }}
             {{ d.renglonesOrdenCompra.length === 1 ? 'renglón' : 'renglones' }}
           </h3>
           <ng-container *ngTemplateOutlet="tabla; context: { $implicit: d.renglonesOrdenCompra }" />

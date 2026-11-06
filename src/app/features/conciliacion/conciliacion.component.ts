@@ -14,10 +14,18 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSortModule, Sort } from '@angular/material/sort';
 import { MatDialog } from '@angular/material/dialog';
 import { ConciliacionService } from '../../core/services/conciliacion.service';
-import { Conciliacion, EstadoConciliacion, FacturaConciliada, OrdenPendiente } from '../../core/models/conciliacion.model';
+import {
+  Conciliacion,
+  EstadoConciliacion,
+  FacturaConciliada,
+  OrdenFacturadaSinXml,
+  OrdenPendiente,
+  ReferenciaOrdenInvalida
+} from '../../core/models/conciliacion.model';
 import { ConciliacionDetalleDialogComponent } from './conciliacion-detalle-dialog.component';
 
-type Filtro = 'Todas' | EstadoConciliacion | 'OrdenesPendientes';
+type Filtro = 'Todas' | EstadoConciliacion | 'OrdenesPendientes' | 'FacturadasSinXml' | 'ReferenciasInvalidas';
+type Tabla = 'facturas' | 'ordenes' | 'facturadas' | 'invalidas';
 type ValorOrden = string | number | null;
 
 const sinOrden: Sort = { active: '', direction: '' };
@@ -60,6 +68,8 @@ interface Tarjeta {
 export class ConciliacionComponent implements OnInit {
   readonly columnasFacturas = ['fecha', 'proveedor', 'factura', 'subtotal', 'iva', 'oc', 'diferencia', 'estado', 'acciones'];
   readonly columnasOrdenes = ['fecha', 'dias', 'proveedor', 'oc', 'subtotal', 'saldo'];
+  readonly columnasFacturadas = ['fecha', 'proveedor', 'oc', 'subtotal', 'fc', 'documento'];
+  readonly columnasInvalidas = ['fecha', 'proveedor', 'fc', 'documento', 'referencia', 'motivo'];
 
   readonly etiquetas: Record<EstadoConciliacion, string> = {
     Cuadra: 'Cuadra',
@@ -82,6 +92,8 @@ export class ConciliacionComponent implements OnInit {
   // por tabla para que no se pierda al pasar de las facturas a las OC sin factura y volver.
   readonly ordenFacturas = signal<Sort>(sinOrden);
   readonly ordenOrdenes = signal<Sort>(sinOrden);
+  readonly ordenFacturadas = signal<Sort>(sinOrden);
+  readonly ordenInvalidas = signal<Sort>(sinOrden);
 
   readonly pageIndex = signal(0);
   readonly pageSize = signal(25);
@@ -99,7 +111,7 @@ export class ConciliacionComponent implements OnInit {
     return datos.facturas.filter(
       (f) =>
         (!proveedor || this.coincideProveedor(f.nombreProveedor, f.nitProveedor, proveedor)) &&
-        (!oc || String(f.ordenCompraNumero ?? '').includes(oc)) &&
+        (!oc || f.ordenesCompra.some((n) => String(n).includes(oc))) &&
         (!factura || this.normalizar(f.numero).includes(factura))
     );
   });
@@ -118,9 +130,42 @@ export class ConciliacionComponent implements OnInit {
     );
   });
 
+  // OC que una FC de WO dice cubrir pero sin XML, y OC mal citadas en una FC: el número de factura
+  // se busca contra el "Doc. Externo" de la FC (el número de la factura del proveedor).
+  private readonly facturadasBuscadas = computed(() => {
+    const datos = this.conciliacion();
+    if (!datos) return [];
+    const proveedor = this.normalizar(this.proveedor());
+    const oc = this.numeroOc().trim();
+    const factura = this.normalizar(this.numeroFactura());
+    return datos.ordenesFacturadasSinXml.filter(
+      (o) =>
+        (!proveedor || this.coincideProveedor(o.nombreProveedor, o.nitProveedor, proveedor)) &&
+        (!oc || String(o.numero).includes(oc)) &&
+        (!factura || this.normalizar(o.documentoExterno ?? '').includes(factura))
+    );
+  });
+
+  private readonly invalidasBuscadas = computed(() => {
+    const datos = this.conciliacion();
+    if (!datos) return [];
+    const proveedor = this.normalizar(this.proveedor());
+    const oc = this.numeroOc().trim();
+    const factura = this.normalizar(this.numeroFactura());
+    return datos.referenciasInvalidas.filter(
+      (r) =>
+        (!proveedor || this.coincideProveedor(r.nombreProveedor, r.nitProveedor, proveedor)) &&
+        (!oc || String(r.ordenCitada).includes(oc)) &&
+        (!factura || this.normalizar(r.documentoExterno ?? '').includes(factura))
+    );
+  });
+
+  readonly cantidadInvalidas = computed(() => this.invalidasBuscadas().length);
+
   readonly tarjetas = computed<Tarjeta[]>(() => {
     const facturas = this.facturasBuscadas();
     const ordenes = this.ordenesBuscadas();
+    const facturadas = this.facturadasBuscadas();
     const grupo = (estado: EstadoConciliacion) => facturas.filter((f) => f.estado === estado);
     const sumar = (lista: FacturaConciliada[]) => lista.reduce((t, f) => t + f.subtotal, 0);
     return [
@@ -135,6 +180,13 @@ export class ConciliacionComponent implements OnInit {
         icono: 'pending_actions',
         cantidad: ordenes.length,
         valor: ordenes.reduce((t, o) => t + o.saldoSubtotal, 0)
+      },
+      {
+        filtro: 'FacturadasSinXml',
+        titulo: 'Facturadas sin XML',
+        icono: 'cloud_off',
+        cantidad: facturadas.length,
+        valor: facturadas.reduce((t, o) => t + o.subtotal, 0)
       }
     ];
   });
@@ -155,12 +207,27 @@ export class ConciliacionComponent implements OnInit {
     this.ordenarLista(this.ordenesBuscadas(), this.ordenOrdenes(), (o, columna) => this.valorOrden(o, columna))
   );
 
-  readonly totalFilas = computed(() =>
-    this.filtro() === 'OrdenesPendientes' ? this.ordenesOrdenadas().length : this.facturasFiltradas().length
+  private readonly facturadasOrdenadas = computed(() =>
+    this.ordenarLista(this.facturadasBuscadas(), this.ordenFacturadas(), (o, columna) => this.valorFacturada(o, columna))
   );
+
+  private readonly invalidasOrdenadas = computed(() =>
+    this.ordenarLista(this.invalidasBuscadas(), this.ordenInvalidas(), (r, columna) => this.valorInvalida(r, columna))
+  );
+
+  readonly totalFilas = computed(() => {
+    switch (this.filtro()) {
+      case 'OrdenesPendientes': return this.ordenesOrdenadas().length;
+      case 'FacturadasSinXml': return this.facturadasOrdenadas().length;
+      case 'ReferenciasInvalidas': return this.invalidasOrdenadas().length;
+      default: return this.facturasFiltradas().length;
+    }
+  });
 
   readonly paginaFacturas = computed(() => this.paginar(this.facturasFiltradas()));
   readonly paginaOrdenes = computed(() => this.paginar(this.ordenesOrdenadas()));
+  readonly paginaFacturadas = computed(() => this.paginar(this.facturadasOrdenadas()));
+  readonly paginaInvalidas = computed(() => this.paginar(this.invalidasOrdenadas()));
 
   constructor(
     private readonly conciliacionService: ConciliacionService,
@@ -206,8 +273,9 @@ export class ConciliacionComponent implements OnInit {
     this.pageIndex.set(0);
   }
 
-  ordenar(tabla: 'facturas' | 'ordenes', orden: Sort): void {
-    (tabla === 'facturas' ? this.ordenFacturas : this.ordenOrdenes).set(orden);
+  ordenar(tabla: Tabla, orden: Sort): void {
+    const senales = { facturas: this.ordenFacturas, ordenes: this.ordenOrdenes, facturadas: this.ordenFacturadas, invalidas: this.ordenInvalidas };
+    senales[tabla].set(orden);
     this.pageIndex.set(0);
   }
 
@@ -262,7 +330,7 @@ export class ConciliacionComponent implements OnInit {
       case 'factura': return f.numero;
       case 'subtotal': return f.subtotal;
       case 'iva': return f.iva;
-      case 'oc': return f.ordenCompraNumero;
+      case 'oc': return f.ordenesCompra[0] ?? null;
       case 'diferencia': return f.estado === 'Cuadra' ? null : f.diferenciaSubtotal;
       case 'estado': return this.etiquetas[f.estado];
       default: return null;
@@ -277,6 +345,30 @@ export class ConciliacionComponent implements OnInit {
       case 'oc': return o.numero;
       case 'subtotal': return o.subtotal;
       case 'saldo': return o.saldoSubtotal;
+      default: return null;
+    }
+  }
+
+  private valorFacturada(o: OrdenFacturadaSinXml, columna: string): ValorOrden {
+    switch (columna) {
+      case 'fecha': return o.fecha;
+      case 'proveedor': return o.nombreProveedor;
+      case 'oc': return o.numero;
+      case 'subtotal': return o.subtotal;
+      case 'fc': return o.facturaCompraNumero;
+      case 'documento': return o.documentoExterno;
+      default: return null;
+    }
+  }
+
+  private valorInvalida(r: ReferenciaOrdenInvalida, columna: string): ValorOrden {
+    switch (columna) {
+      case 'fecha': return r.fecha;
+      case 'proveedor': return r.nombreProveedor;
+      case 'fc': return r.facturaCompraNumero;
+      case 'documento': return r.documentoExterno;
+      case 'referencia': return r.referenciaOrdenes;
+      case 'motivo': return r.motivo;
       default: return null;
     }
   }

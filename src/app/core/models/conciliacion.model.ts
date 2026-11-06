@@ -18,6 +18,10 @@ export interface FacturaConciliada {
   diferenciaSubtotal: number | null;
   diferenciaIva: number | null;
   detalle: string;
+  // Todas las OC del cruce (varias solo si salió de una FC de WO que cita más de una) y la FC de
+  // World Office de donde salió el cruce, si fue por esa vía.
+  ordenesCompra: number[];
+  facturaCompraNumero: number | null;
 }
 
 export interface OrdenPendiente {
@@ -30,12 +34,39 @@ export interface OrdenPendiente {
   saldoSubtotal: number;
 }
 
+// OC que una FC de World Office dice cubrir, pero cuyo XML no llegó: falta bajarlo de la DIAN.
+export interface OrdenFacturadaSinXml {
+  numero: number;
+  fecha: string;
+  nitProveedor: string;
+  nombreProveedor: string;
+  subtotal: number;
+  iva: number;
+  facturaCompraNumero: number;
+  facturaCompraFecha: string;
+  documentoExterno: string | null;
+}
+
+// OC escrita por Contabilidad en una FC de WO que no se pudo usar (otro proveedor o no existe).
+export interface ReferenciaOrdenInvalida {
+  facturaCompraNumero: number;
+  fecha: string;
+  nitProveedor: string;
+  nombreProveedor: string;
+  documentoExterno: string | null;
+  referenciaOrdenes: string | null;
+  ordenCitada: number;
+  motivo: string;
+}
+
 export interface ResumenConciliacion {
   cuadran: number;
   conDiferencia: number;
   parciales: number;
   sinOrdenCompra: number;
   ordenesPendientes: number;
+  ordenesFacturadasSinXml: number;
+  referenciasInvalidas: number;
 }
 
 export interface Conciliacion {
@@ -44,6 +75,8 @@ export interface Conciliacion {
   resumen: ResumenConciliacion;
   facturas: FacturaConciliada[];
   ordenesPendientes: OrdenPendiente[];
+  ordenesFacturadasSinXml: OrdenFacturadaSinXml[];
+  referenciasInvalidas: ReferenciaOrdenInvalida[];
   ultimaSincronizacionOrdenes: string | null;
   ultimaFacturaRecibida: string | null;
 }

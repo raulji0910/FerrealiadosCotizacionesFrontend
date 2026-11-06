@@ -90,10 +90,24 @@
             @if (t.filtro === 'OrdenesPendientes') {
               por facturar
             }
+            @if (t.filtro === 'FacturadasSinXml') {
+              falta el XML
+            }
           </span>
         </button>
       }
     </section>
+
+    @if (cantidadInvalidas() > 0 && filtro() !== 'ReferenciasInvalidas') {
+      <button type="button" class="conciliacion__aviso" (click)="seleccionar('ReferenciasInvalidas')">
+        <mat-icon>report</mat-icon>
+        <span>
+          <strong>{{ cantidadInvalidas() }} {{ cantidadInvalidas() === 1 ? 'OC mal citada' : 'OC mal citadas' }}</strong>
+          en facturas de compra de World Office: la OC escrita por Contabilidad es de otro proveedor o no existe.
+        </span>
+        <span class="conciliacion__aviso-accion">Revisar</span>
+      </button>
+    }
 
     <section class="conciliacion__panel conciliacion__tabla">
       @if (filtro() === 'OrdenesPendientes') {
@@ -152,6 +166,126 @@
             <tr mat-row *matRowDef="let oc; columns: columnasOrdenes"></tr>
           </table>
         }
+      } @else if (filtro() === 'FacturadasSinXml') {
+        <p class="conciliacion__explicacion">
+          <mat-icon>info</mat-icon>
+          Contabilidad ya registró la factura en World Office con estas OC, pero el XML no llegó al correo de facturación.
+          Búscalo en la DIAN por el número de factura del proveedor y cárgalo.
+        </p>
+        @if (totalFilas() === 0) {
+          <p class="conciliacion__vacio">
+            <mat-icon>inbox</mat-icon>
+            No hay OC facturadas sin XML con estos filtros.
+          </p>
+        } @else {
+          <table
+            mat-table
+            [dataSource]="paginaFacturadas()"
+            class="tabla-responsiva"
+            matSort
+            [matSortActive]="ordenFacturadas().active"
+            [matSortDirection]="ordenFacturadas().direction"
+            (matSortChange)="ordenar('facturadas', $event)"
+          >
+            <ng-container matColumnDef="fecha">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Fecha OC</th>
+              <td mat-cell *matCellDef="let o" data-label="Fecha OC">{{ o.fecha | date: 'dd/MM/yyyy' }}</td>
+            </ng-container>
+            <ng-container matColumnDef="proveedor">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Proveedor</th>
+              <td mat-cell *matCellDef="let o" data-label="Proveedor">
+                <div class="conciliacion__proveedor">
+                  {{ o.nombreProveedor }}
+                  <span class="conciliacion__secundario">NIT {{ o.nitProveedor }}</span>
+                </div>
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="oc">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>OC</th>
+              <td mat-cell *matCellDef="let o" data-label="OC"><span class="conciliacion__oc">{{ o.numero }}</span></td>
+            </ng-container>
+            <ng-container matColumnDef="subtotal">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header arrowPosition="before" class="conciliacion__num">Subtotal OC</th>
+              <td mat-cell *matCellDef="let o" data-label="Subtotal OC" class="conciliacion__num">{{ o.subtotal | currency: 'COP' : 'symbol' : '1.0-0' }}</td>
+            </ng-container>
+            <ng-container matColumnDef="fc">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>FC en World Office</th>
+              <td mat-cell *matCellDef="let o" data-label="FC en World Office">
+                <div class="conciliacion__proveedor">
+                  <span class="conciliacion__oc">FC {{ o.facturaCompraNumero }}</span>
+                  <span class="conciliacion__secundario">{{ o.facturaCompraFecha | date: 'dd/MM/yyyy' }}</span>
+                </div>
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="documento">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Factura del proveedor</th>
+              <td mat-cell *matCellDef="let o" data-label="Factura del proveedor">{{ o.documentoExterno || '—' }}</td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="columnasFacturadas; sticky: true"></tr>
+            <tr mat-row *matRowDef="let o; columns: columnasFacturadas"></tr>
+          </table>
+        }
+      } @else if (filtro() === 'ReferenciasInvalidas') {
+        <p class="conciliacion__explicacion conciliacion__explicacion--alerta">
+          <mat-icon>report</mat-icon>
+          En estas facturas de compra de World Office, la OC escrita en "Personalizado 1" no se pudo usar en el cruce.
+          Contabilidad puede corregirla en World Office (Más datos → Personalizados).
+        </p>
+        @if (totalFilas() === 0) {
+          <p class="conciliacion__vacio">
+            <mat-icon>inbox</mat-icon>
+            No hay OC mal citadas con estos filtros.
+          </p>
+        } @else {
+          <table
+            mat-table
+            [dataSource]="paginaInvalidas()"
+            class="tabla-responsiva"
+            matSort
+            [matSortActive]="ordenInvalidas().active"
+            [matSortDirection]="ordenInvalidas().direction"
+            (matSortChange)="ordenar('invalidas', $event)"
+          >
+            <ng-container matColumnDef="fecha">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Fecha FC</th>
+              <td mat-cell *matCellDef="let r" data-label="Fecha FC">{{ r.fecha | date: 'dd/MM/yyyy' }}</td>
+            </ng-container>
+            <ng-container matColumnDef="proveedor">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Proveedor</th>
+              <td mat-cell *matCellDef="let r" data-label="Proveedor">
+                <div class="conciliacion__proveedor">
+                  {{ r.nombreProveedor }}
+                  <span class="conciliacion__secundario">NIT {{ r.nitProveedor }}</span>
+                </div>
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="fc">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>FC</th>
+              <td mat-cell *matCellDef="let r" data-label="FC"><span class="conciliacion__oc">FC {{ r.facturaCompraNumero }}</span></td>
+            </ng-container>
+            <ng-container matColumnDef="documento">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Factura del proveedor</th>
+              <td mat-cell *matCellDef="let r" data-label="Factura del proveedor">{{ r.documentoExterno || '—' }}</td>
+            </ng-container>
+            <ng-container matColumnDef="referencia">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Escrito en WO</th>
+              <td mat-cell *matCellDef="let r" data-label="Escrito en WO">
+                <div class="conciliacion__proveedor">
+                  {{ r.referenciaOrdenes }}
+                  <span class="conciliacion__secundario">OC {{ r.ordenCitada }}</span>
+                </div>
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="motivo">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Problema</th>
+              <td mat-cell *matCellDef="let r" data-label="Problema" class="conciliacion__motivo">{{ r.motivo }}</td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="columnasInvalidas; sticky: true"></tr>
+            <tr mat-row *matRowDef="let r; columns: columnasInvalidas"></tr>
+          </table>
+        }
       } @else {
         @if (totalFilas() === 0) {
           <p class="conciliacion__vacio">
@@ -198,8 +332,13 @@
               <td mat-cell *matCellDef="let f" data-label="OC">
                 @if (f.ordenCompraNumero) {
                   <div class="conciliacion__proveedor">
-                    <span class="conciliacion__oc">{{ f.ordenCompraNumero }}</span>
+                    <span class="conciliacion__oc">{{ f.ordenesCompra.join(', ') }}</span>
                     <span class="conciliacion__secundario">{{ f.ordenCompraSubtotal | currency: 'COP' : 'symbol' : '1.0-0' }}</span>
+                    @if (f.facturaCompraNumero) {
+                      <span class="conciliacion__via" matTooltip="Cruzada con la OC que Contabilidad escribió en la FC de World Office">
+                        vía FC {{ f.facturaCompraNumero }}
+                      </span>
+                    }
                   </div>
                 } @else {
                   <span class="conciliacion__secundario">—</span>
