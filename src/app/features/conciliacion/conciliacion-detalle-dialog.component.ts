@@ -6,7 +6,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTableModule } from '@angular/material/table';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { ConciliacionService } from '../../core/services/conciliacion.service';
-import { DetalleFacturaConciliada, EstadoConciliacion } from '../../core/models/conciliacion.model';
+import { DetalleFacturaConciliada, EstadoConciliacion, OrigenFactura } from '../../core/models/conciliacion.model';
 
 export interface ConciliacionDetalleDialogData {
   facturaId: number;
@@ -51,6 +51,12 @@ export class ConciliacionDetalleDialogComponent implements OnInit {
     Diferencia: 'Con diferencia',
     Parcial: 'Entrega parcial',
     SinOrdenCompra: 'Sin OC'
+  };
+
+  readonly origenes: Record<OrigenFactura, string> = {
+    Correo: 'Correo de facturación',
+    Carpeta: 'Carga por carpeta',
+    Dian: 'ZIP de la DIAN'
   };
 
   readonly iconos: Record<EstadoConciliacion, string> = {

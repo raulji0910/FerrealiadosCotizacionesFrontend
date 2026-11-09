@@ -39,6 +39,10 @@
           <strong>—</strong>
         }
       </div>
+      <div class="detalle__dato">
+        <span>Recibida por</span>
+        <strong>{{ origenes[d.conciliacion.origen] }}</strong>
+      </div>
       @if (d.conciliacion.facturaCompraNumero) {
         <div class="detalle__dato">
           <span>Cruzada vía</span>

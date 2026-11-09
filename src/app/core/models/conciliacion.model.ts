@@ -22,6 +22,34 @@ export interface FacturaConciliada {
   // World Office de donde salió el cruce, si fue por esa vía.
   ordenesCompra: number[];
   facturaCompraNumero: number | null;
+  // Por dónde entró: correo de facturación, carga única por carpeta o ZIP subido de la DIAN.
+  origen: OrigenFactura;
+}
+
+export type OrigenFactura = 'Correo' | 'Carpeta' | 'Dian';
+
+export type EstadoCarga = 'Nueva' | 'Duplicada' | 'NoReconocida' | 'OtroReceptor';
+
+// Un XML leído de los ZIP subidos.
+export interface FacturaCargada {
+  nombreArchivo: string | null;
+  numero: string | null;
+  nitProveedor: string | null;
+  nombreProveedor: string | null;
+  fechaEmision: string | null;
+  total: number | null;
+  estado: EstadoCarga;
+  origenExistente: OrigenFactura | null;
+}
+
+export interface CargaArchivosResultado {
+  archivos: number;
+  nuevas: number;
+  duplicadas: number;
+  noReconocidas: number;
+  otroReceptor: number;
+  facturas: FacturaCargada[];
+  avisos: string[];
 }
 
 export interface OrdenPendiente {

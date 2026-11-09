@@ -11,6 +11,7 @@
   --acento-sin-oc: #6d4c41;
   --acento-pendientes: #1565c0;
   --acento-facturadas: #00838f;
+  --acento-dian: #6a1b9a;
 
   h2 {
     margin: 0;
@@ -295,6 +296,11 @@
     white-space: nowrap;
     color: var(--acento-facturadas);
     background-color: color-mix(in srgb, var(--acento-facturadas) 12%, transparent);
+
+    &--dian {
+      color: var(--acento-dian);
+      background-color: color-mix(in srgb, var(--acento-dian) 12%, transparent);
+    }
   }
 
   &__motivo {

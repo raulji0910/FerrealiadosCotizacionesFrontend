@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpEvent } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { Conciliacion, DetalleFacturaConciliada } from '../models/conciliacion.model';
+import { CargaArchivosResultado, Conciliacion, DetalleFacturaConciliada } from '../models/conciliacion.model';
 
 @Injectable({ providedIn: 'root' })
 export class ConciliacionService {
@@ -17,5 +17,16 @@ export class ConciliacionService {
 
   obtenerDetalle(facturaId: number): Observable<DetalleFacturaConciliada> {
     return this.http.get<DetalleFacturaConciliada>(`${this.baseUrl}/facturas/${facturaId}`);
+  }
+
+  // ZIP/XML descargados de la DIAN, varios en una sola petición. Con eventos para mostrar el avance
+  // de la subida.
+  cargarArchivos(archivos: File[]): Observable<HttpEvent<CargaArchivosResultado>> {
+    const datos = new FormData();
+    for (const archivo of archivos) datos.append('archivos', archivo, archivo.name);
+    return this.http.post<CargaArchivosResultado>(`${this.baseUrl}/cargar-archivos`, datos, {
+      reportProgress: true,
+      observe: 'events'
+    });
   }
 }

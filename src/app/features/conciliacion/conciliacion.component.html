@@ -3,7 +3,7 @@
     <div>
       <h2>Conciliación de facturas</h2>
       <p class="conciliacion__descripcion">
-        Facturas electrónicas del correo de facturación cruzadas contra las órdenes de compra de World Office
+        Facturas electrónicas del correo de facturación y de los ZIP de la DIAN, cruzadas contra las órdenes de compra de World Office
         (NIT del proveedor, subtotal e IVA).
       </p>
     </div>
@@ -53,6 +53,12 @@
         <button mat-button (click)="limpiarFiltros()">
           <mat-icon>filter_alt_off</mat-icon>
           Limpiar
+        </button>
+      }
+      @if (puedeCargar) {
+        <button mat-stroked-button (click)="abrirCargaDian()" matTooltip="Subir los ZIP de facturas descargados del portal de la DIAN">
+          <mat-icon>upload_file</mat-icon>
+          Cargar ZIP DIAN
         </button>
       }
       <button mat-flat-button (click)="cargar()" [disabled]="cargando()">
@@ -317,7 +323,16 @@
             </ng-container>
             <ng-container matColumnDef="factura">
               <th mat-header-cell *matHeaderCellDef mat-sort-header>Factura</th>
-              <td mat-cell *matCellDef="let f" data-label="Factura">{{ f.numero }}</td>
+              <td mat-cell *matCellDef="let f" data-label="Factura">
+                <div class="conciliacion__proveedor">
+                  {{ f.numero }}
+                  @if (f.origen === 'Dian') {
+                    <span class="conciliacion__via conciliacion__via--dian" matTooltip="No llegó al correo de facturación: se cargó desde un ZIP de la DIAN">
+                      DIAN
+                    </span>
+                  }
+                </div>
+              </td>
             </ng-container>
             <ng-container matColumnDef="subtotal">
               <th mat-header-cell *matHeaderCellDef mat-sort-header arrowPosition="before" class="conciliacion__num">Subtotal</th>

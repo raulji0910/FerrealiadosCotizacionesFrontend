@@ -23,6 +23,8 @@ import {
   ReferenciaOrdenInvalida
 } from '../../core/models/conciliacion.model';
 import { ConciliacionDetalleDialogComponent } from './conciliacion-detalle-dialog.component';
+import { CargaDianDialogComponent } from './carga-dian-dialog.component';
+import { AuthService } from '../../core/services/auth.service';
 
 type Filtro = 'Todas' | EstadoConciliacion | 'OrdenesPendientes' | 'FacturadasSinXml' | 'ReferenciasInvalidas';
 type Tabla = 'facturas' | 'ordenes' | 'facturadas' | 'invalidas';
@@ -229,10 +231,15 @@ export class ConciliacionComponent implements OnInit {
   readonly paginaFacturadas = computed(() => this.paginar(this.facturadasOrdenadas()));
   readonly paginaInvalidas = computed(() => this.paginar(this.invalidasOrdenadas()));
 
+  // Cargar ZIP de la DIAN: Admin y Conciliador (el Cotizador solo consulta).
+  readonly puedeCargar: boolean;
+
   constructor(
     private readonly conciliacionService: ConciliacionService,
-    private readonly dialog: MatDialog
+    private readonly dialog: MatDialog,
+    auth: AuthService
   ) {
+    this.puedeCargar = auth.esAdmin || auth.esConciliador;
     this.hasta = new Date();
     this.desde = new Date();
     this.desde.setDate(this.desde.getDate() - 30);
@@ -292,6 +299,15 @@ export class ConciliacionComponent implements OnInit {
       data: { facturaId: factura.facturaId }
     });
     dialogRef.afterOpened().subscribe(() => window.dispatchEvent(new Event('resize')));
+  }
+
+  abrirCargaDian(): void {
+    this.dialog
+      .open(CargaDianDialogComponent, { width: '56rem', maxWidth: '95vw', disableClose: true, autoFocus: 'dialog' })
+      .afterClosed()
+      .subscribe((hayNuevas) => {
+        if (hayNuevas) this.cargar();
+      });
   }
 
   etiqueta(estado: EstadoConciliacion): string {
