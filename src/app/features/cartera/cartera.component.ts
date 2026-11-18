@@ -11,12 +11,16 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatSortModule, Sort } from '@angular/material/sort';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { CarteraService } from '../../core/services/cartera.service';
 import { Cartera, ClienteCarteraResumen, EnvioCartera, RemisionSinFactura } from '../../core/models/cartera.model';
 import { CarteraClienteDialogComponent } from './cartera-cliente-dialog.component';
 import { EnvioMasivoDialogComponent, EnvioMasivoDialogData } from './envio-masivo-dialog.component';
+
+type ValorOrden = string | number | null;
+const sinOrden: Sort = { active: '', direction: '' };
 
 interface Tarjeta {
   titulo: string;
@@ -51,7 +55,8 @@ interface MesRemisiones {
     MatCheckboxModule,
     MatSlideToggleModule,
     MatTabsModule,
-    MatTooltipModule
+    MatTooltipModule,
+    MatSortModule
   ],
   templateUrl: './cartera.component.html',
   styleUrl: './cartera.component.scss'
@@ -78,6 +83,11 @@ export class CarteraComponent implements OnInit {
   readonly busquedaRemisiones = signal('');
   readonly envios = signal<EnvioCartera[] | null>(null);
 
+  // Orden elegido con clic en los encabezados (asc → desc → como llega). Uno por tabla.
+  readonly ordenClientes = signal<Sort>(sinOrden);
+  readonly ordenRemisiones = signal<Sort>(sinOrden);
+  readonly ordenEnvios = signal<Sort>(sinOrden);
+
   readonly tarjetas = computed<Tarjeta[]>(() => {
     const t = this.cartera()?.totales;
     if (!t) return [];
@@ -103,7 +113,24 @@ export class CarteraComponent implements OnInit {
     );
   });
 
+  readonly clientesOrdenados = computed(() =>
+    this.ordenarLista(this.clientesFiltrados(), this.ordenClientes(), (c, columna) => this.valorCliente(c, columna))
+  );
+
+  readonly enviosOrdenados = computed(() =>
+    this.ordenarLista(this.envios() ?? [], this.ordenEnvios(), (e, columna) => this.valorEnvio(e, columna))
+  );
+
   readonly sinContacto = computed(() => this.cartera()?.clientes.filter((c) => !c.correosCobro).length ?? 0);
+
+  // Clientes que sí deberían recibir cobro (saldo sobre el mínimo) pero no tienen a quién enviarlo:
+  // típicamente clientes nuevos que acaban de aparecer en la cartera de WO.
+  readonly pendientesDeCorreo = computed(() => {
+    const datos = this.cartera();
+    if (!datos) return { cantidad: 0, total: 0 };
+    const lista = datos.clientes.filter((c) => !c.correosCobro && c.edades.total >= datos.saldoMinimo);
+    return { cantidad: lista.length, total: lista.reduce((t, c) => t + c.edades.total, 0) };
+  });
   readonly cantidadSeleccionados = computed(() => this.seleccion().size);
   readonly todosSeleccionados = computed(() => {
     const visibles = this.clientesFiltrados();
@@ -124,6 +151,10 @@ export class CarteraComponent implements OnInit {
       }
       mes.remisiones.push(r);
       mes.total += r.saldo;
+    }
+    const orden = this.ordenRemisiones();
+    for (const mes of meses.values()) {
+      mes.remisiones = this.ordenarLista(mes.remisiones, orden, (r, columna) => this.valorRemision(r, columna));
     }
     return [...meses.values()].sort((a, b) => b.clave.localeCompare(a.clave));
   });
@@ -221,6 +252,63 @@ export class CarteraComponent implements OnInit {
         this.envios.set(null);
       }
     });
+  }
+
+  verPendientesDeCorreo(): void {
+    this.soloSinContacto.set(true);
+    this.soloVencidos.set(false);
+    this.busqueda.set('');
+  }
+
+  // Los vacíos (sin correo, nunca enviado) van siempre al final, en los dos sentidos.
+  private ordenarLista<T>(lista: T[], orden: Sort, valor: (item: T, columna: string) => ValorOrden): T[] {
+    if (!orden.active || !orden.direction) return lista;
+    const signo = orden.direction === 'asc' ? 1 : -1;
+    return [...lista].sort((a, b) => {
+      const va = valor(a, orden.active);
+      const vb = valor(b, orden.active);
+      if (va === null || vb === null) return va === vb ? 0 : va === null ? 1 : -1;
+      const comparacion =
+        typeof va === 'number' && typeof vb === 'number'
+          ? va - vb
+          : String(va).localeCompare(String(vb), 'es', { numeric: true, sensitivity: 'base' });
+      return comparacion * signo;
+    });
+  }
+
+  private valorCliente(c: ClienteCarteraResumen, columna: string): ValorOrden {
+    switch (columna) {
+      case 'cliente': return c.nombre;
+      case 'total': return c.edades.total;
+      case 'vencido': return c.edades.vencido;
+      case 'dias': return c.diasMaximoVencido;
+      case 'contacto': return c.correosCobro || null;
+      case 'envio': return c.ultimoEnvio?.fecha ?? null;
+      default: return null;
+    }
+  }
+
+  private valorRemision(r: RemisionSinFactura, columna: string): ValorOrden {
+    switch (columna) {
+      case 'fecha': return r.fecha;
+      case 'cliente': return r.nombreCliente;
+      case 'remision': return r.numero;
+      case 'dias': return r.diasSinFacturar;
+      case 'saldo': return r.saldo;
+      default: return null;
+    }
+  }
+
+  private valorEnvio(e: EnvioCartera, columna: string): ValorOrden {
+    switch (columna) {
+      case 'fecha': return e.fecha;
+      case 'cliente': return e.nombreCliente;
+      case 'para': return e.para;
+      case 'saldo': return e.saldo;
+      case 'usuario': return e.usuario;
+      case 'estado': return e.exitoso ? 1 : 0;
+      default: return null;
+    }
   }
 
   claseDias(dias: number): string {

@@ -157,6 +157,38 @@
     }
   }
 
+  // Encabezados de montos alineados a la derecha también con la flecha de orden.
+  th.cartera__num ::ng-deep .mat-sort-header-container {
+    justify-content: flex-end;
+  }
+
+  &__aviso {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    width: 100%;
+    padding: 0.7rem 1rem;
+    border: 1px solid color-mix(in srgb, #f9a825 55%, transparent);
+    border-radius: 12px;
+    background-color: color-mix(in srgb, #f9a825 10%, var(--mat-sys-surface));
+    color: var(--mat-sys-on-surface);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+
+    > mat-icon {
+      flex-shrink: 0;
+      color: #a06b00;
+    }
+  }
+
+  &__aviso-accion {
+    margin-left: auto;
+    flex-shrink: 0;
+    font-weight: 600;
+    color: var(--mat-sys-primary);
+  }
+
   &__check {
     width: 3rem;
   }

@@ -40,6 +40,19 @@
           }
         </section>
 
+        @if (pendientesDeCorreo().cantidad > 0) {
+          <button type="button" class="cartera__aviso" (click)="verPendientesDeCorreo()">
+            <mat-icon>contact_mail</mat-icon>
+            <span>
+              <strong>{{ pendientesDeCorreo().cantidad }} {{ pendientesDeCorreo().cantidad === 1 ? 'cliente' : 'clientes' }} con saldo
+                ({{ pendientesDeCorreo().total | currency: 'COP' : 'symbol' : '1.0-0' }})</strong>
+              no {{ pendientesDeCorreo().cantidad === 1 ? 'tiene' : 'tienen' }} correo de cobro: no se les puede enviar el estado de cuenta.
+              Los clientes nuevos de World Office llegan así.
+            </span>
+            <span class="cartera__aviso-accion">Ver y completar</span>
+          </button>
+        }
+
         <section class="cartera__panel cartera__filtros">
           <mat-form-field appearance="outline" subscriptSizing="dynamic" class="cartera__buscar">
             <mat-label>Cliente o NIT</mat-label>
@@ -66,7 +79,7 @@
           @if (clientesFiltrados().length === 0) {
             <p class="cartera__vacio"><mat-icon>inbox</mat-icon> No hay clientes con estos filtros.</p>
           } @else {
-            <table mat-table [dataSource]="clientesFiltrados()" class="tabla-responsiva">
+            <table mat-table [dataSource]="clientesOrdenados()" class="tabla-responsiva" matSort [matSortActive]="ordenClientes().active" [matSortDirection]="ordenClientes().direction" (matSortChange)="ordenClientes.set($event)">
               <ng-container matColumnDef="seleccion">
                 <th mat-header-cell *matHeaderCellDef class="cartera__check">
                   <mat-checkbox [checked]="todosSeleccionados()" (change)="alternarTodos($event.checked)" aria-label="Seleccionar todos" />
@@ -77,7 +90,7 @@
               </ng-container>
 
               <ng-container matColumnDef="cliente">
-                <th mat-header-cell *matHeaderCellDef>Cliente</th>
+                <th mat-header-cell *matHeaderCellDef mat-sort-header>Cliente</th>
                 <td mat-cell *matCellDef="let c" data-label="Cliente">
                   <div class="cartera__cliente">
                     <strong>{{ c.nombre }}</strong>
@@ -87,21 +100,21 @@
               </ng-container>
 
               <ng-container matColumnDef="total">
-                <th mat-header-cell *matHeaderCellDef class="cartera__num">Saldo</th>
+                <th mat-header-cell *matHeaderCellDef mat-sort-header class="cartera__num">Saldo</th>
                 <td mat-cell *matCellDef="let c" data-label="Saldo" class="cartera__num cartera__fuerte">
                   {{ c.edades.total | currency: 'COP' : 'symbol' : '1.0-0' }}
                 </td>
               </ng-container>
 
               <ng-container matColumnDef="vencido">
-                <th mat-header-cell *matHeaderCellDef class="cartera__num">Vencido</th>
+                <th mat-header-cell *matHeaderCellDef mat-sort-header class="cartera__num">Vencido</th>
                 <td mat-cell *matCellDef="let c" data-label="Vencido" class="cartera__num" [class.cartera__negativo]="c.edades.vencido > 0">
                   {{ c.edades.vencido | currency: 'COP' : 'symbol' : '1.0-0' }}
                 </td>
               </ng-container>
 
               <ng-container matColumnDef="dias">
-                <th mat-header-cell *matHeaderCellDef class="cartera__num">Mora</th>
+                <th mat-header-cell *matHeaderCellDef mat-sort-header class="cartera__num">Mora</th>
                 <td mat-cell *matCellDef="let c" data-label="Mora" class="cartera__num">
                   <span class="cartera__dias" [class]="'cartera__dias ' + claseDias(c.diasMaximoVencido)">
                     {{ c.diasMaximoVencido > 0 ? c.diasMaximoVencido + ' días' : 'Al día' }}
@@ -110,7 +123,7 @@
               </ng-container>
 
               <ng-container matColumnDef="contacto">
-                <th mat-header-cell *matHeaderCellDef>Correo de cobro</th>
+                <th mat-header-cell *matHeaderCellDef mat-sort-header>Correo de cobro</th>
                 <td mat-cell *matCellDef="let c" data-label="Correo de cobro">
                   @if (c.correosCobro) {
                     <span class="cartera__correo" [matTooltip]="c.correosCobro">{{ c.correosCobro }}</span>
@@ -121,7 +134,7 @@
               </ng-container>
 
               <ng-container matColumnDef="envio">
-                <th mat-header-cell *matHeaderCellDef>Último envío</th>
+                <th mat-header-cell *matHeaderCellDef mat-sort-header>Último envío</th>
                 <td mat-cell *matCellDef="let c" data-label="Último envío">
                   @if (c.ultimoEnvio; as e) {
                     <span [class.cartera__negativo]="!e.exitoso" [matTooltip]="e.exitoso ? 'Enviado por ' + e.usuario : 'Falló: ' + e.error">
@@ -178,13 +191,13 @@
                 <strong>{{ mes.total | currency: 'COP' : 'symbol' : '1.0-0' }}</strong>
               </span>
             </header>
-            <table mat-table [dataSource]="mes.remisiones" class="tabla-responsiva">
+            <table mat-table [dataSource]="mes.remisiones" class="tabla-responsiva" matSort [matSortActive]="ordenRemisiones().active" [matSortDirection]="ordenRemisiones().direction" (matSortChange)="ordenRemisiones.set($event)">
               <ng-container matColumnDef="fecha">
-                <th mat-header-cell *matHeaderCellDef>Fecha</th>
+                <th mat-header-cell *matHeaderCellDef mat-sort-header>Fecha</th>
                 <td mat-cell *matCellDef="let r" data-label="Fecha">{{ r.fecha | date: 'dd/MM/yyyy' }}</td>
               </ng-container>
               <ng-container matColumnDef="cliente">
-                <th mat-header-cell *matHeaderCellDef>Cliente</th>
+                <th mat-header-cell *matHeaderCellDef mat-sort-header>Cliente</th>
                 <td mat-cell *matCellDef="let r" data-label="Cliente">
                   <div class="cartera__cliente">
                     {{ r.nombreCliente }}
@@ -193,7 +206,7 @@
                 </td>
               </ng-container>
               <ng-container matColumnDef="remision">
-                <th mat-header-cell *matHeaderCellDef>Remisión</th>
+                <th mat-header-cell *matHeaderCellDef mat-sort-header>Remisión</th>
                 <td mat-cell *matCellDef="let r" data-label="Remisión">
                   <span class="cartera__fuerte">{{ r.prefijo }} {{ r.numero }}</span>
                   @if (r.prefijo !== 'REM') {
@@ -202,13 +215,13 @@
                 </td>
               </ng-container>
               <ng-container matColumnDef="dias">
-                <th mat-header-cell *matHeaderCellDef class="cartera__num">Sin facturar</th>
+                <th mat-header-cell *matHeaderCellDef mat-sort-header class="cartera__num">Sin facturar</th>
                 <td mat-cell *matCellDef="let r" data-label="Sin facturar" class="cartera__num">
                   <span class="cartera__dias" [class]="'cartera__dias ' + claseDias(r.diasSinFacturar)">{{ r.diasSinFacturar }} días</span>
                 </td>
               </ng-container>
               <ng-container matColumnDef="saldo">
-                <th mat-header-cell *matHeaderCellDef class="cartera__num">Valor</th>
+                <th mat-header-cell *matHeaderCellDef mat-sort-header class="cartera__num">Valor</th>
                 <td mat-cell *matCellDef="let r" data-label="Valor" class="cartera__num cartera__fuerte">
                   {{ r.saldo | currency: 'COP' : 'symbol' : '1.0-0' }}
                 </td>
@@ -229,13 +242,13 @@
         <p class="cartera__vacio"><mat-icon>outgoing_mail</mat-icon> Todavía no se ha enviado ningún estado de cuenta.</p>
       } @else {
         <section class="cartera__panel cartera__tabla">
-          <table mat-table [dataSource]="envios()!" class="tabla-responsiva">
+          <table mat-table [dataSource]="enviosOrdenados()" class="tabla-responsiva" matSort [matSortActive]="ordenEnvios().active" [matSortDirection]="ordenEnvios().direction" (matSortChange)="ordenEnvios.set($event)">
             <ng-container matColumnDef="fecha">
-              <th mat-header-cell *matHeaderCellDef>Fecha</th>
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Fecha</th>
               <td mat-cell *matCellDef="let e" data-label="Fecha">{{ e.fecha + 'Z' | date: 'dd/MM/yy h:mm a' }}</td>
             </ng-container>
             <ng-container matColumnDef="cliente">
-              <th mat-header-cell *matHeaderCellDef>Cliente</th>
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Cliente</th>
               <td mat-cell *matCellDef="let e" data-label="Cliente">
                 <div class="cartera__cliente">
                   {{ e.nombreCliente }}
@@ -244,21 +257,21 @@
               </td>
             </ng-container>
             <ng-container matColumnDef="para">
-              <th mat-header-cell *matHeaderCellDef>Enviado a</th>
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Enviado a</th>
               <td mat-cell *matCellDef="let e" data-label="Enviado a">
                 <span class="cartera__correo" [matTooltip]="e.copias ? 'CC: ' + e.copias : ''">{{ e.para }}</span>
               </td>
             </ng-container>
             <ng-container matColumnDef="saldo">
-              <th mat-header-cell *matHeaderCellDef class="cartera__num">Saldo</th>
+              <th mat-header-cell *matHeaderCellDef mat-sort-header class="cartera__num">Saldo</th>
               <td mat-cell *matCellDef="let e" data-label="Saldo" class="cartera__num">{{ e.saldo | currency: 'COP' : 'symbol' : '1.0-0' }}</td>
             </ng-container>
             <ng-container matColumnDef="usuario">
-              <th mat-header-cell *matHeaderCellDef>Usuario</th>
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Usuario</th>
               <td mat-cell *matCellDef="let e" data-label="Usuario">{{ e.usuario }}</td>
             </ng-container>
             <ng-container matColumnDef="estado">
-              <th mat-header-cell *matHeaderCellDef>Estado</th>
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Estado</th>
               <td mat-cell *matCellDef="let e" data-label="Estado">
                 @if (e.exitoso) {
                   <span class="cartera__estado cartera__estado--ok">Enviado</span>
