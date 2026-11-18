@@ -99,15 +99,19 @@ export interface ResultadoEnvioCartera {
   motivo: string | null;
 }
 
+// pendienteFacturar = valor - facturado - otros. pagadaSinFactura: un recibo de caja le abonó
+// directamente a la remisión (se cobró algo que no tiene factura).
 export interface RemisionSinFactura {
   nit: string;
   nombreCliente: string;
-  tipoDocumento: string;
-  prefijo: string;
   numero: number;
   fecha: string;
   diasSinFacturar: number;
-  saldo: number;
+  valor: number;
+  facturado: number;
+  pagado: number;
+  pendienteFacturar: number;
+  pagadaSinFactura: boolean;
 }
 
 export interface ConfiguracionCartera {

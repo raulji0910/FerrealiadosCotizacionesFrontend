@@ -172,10 +172,20 @@
         @if (remisiones()) {
           <span class="cartera__resumen-rem">
             <strong>{{ cantidadRemisiones() | number }}</strong> remisiones ·
-            <strong>{{ totalRemisiones() | currency: 'COP' : 'symbol' : '1.0-0' }}</strong> sin facturar
+            <strong>{{ totalRemisiones() | currency: 'COP' : 'symbol' : '1.0-0' }}</strong> por facturar
           </span>
         }
       </section>
+
+      @if (pagadasSinFactura().length) {
+        <div class="cartera__aviso cartera__aviso--rojo">
+          <mat-icon>report</mat-icon>
+          <span>
+            <strong>{{ pagadasSinFactura().length }} {{ pagadasSinFactura().length === 1 ? 'remisión pagada' : 'remisiones pagadas' }} sin factura:</strong>
+            el cliente pagó con recibo de caja contra la remisión, pero no hay factura electrónica. Están marcadas en rojo.
+          </span>
+        </div>
+      }
 
       @if (remisiones() === null) {
         <mat-progress-bar mode="indeterminate" />
@@ -208,9 +218,14 @@
               <ng-container matColumnDef="remision">
                 <th mat-header-cell *matHeaderCellDef mat-sort-header>Remisión</th>
                 <td mat-cell *matCellDef="let r" data-label="Remisión">
-                  <span class="cartera__fuerte">{{ r.prefijo }} {{ r.numero }}</span>
-                  @if (r.prefijo !== 'REM') {
-                    <small class="cartera__secundario"> · {{ r.tipoDocumento }}</small>
+                  <span class="cartera__fuerte">REM {{ r.numero }}</span>
+                  @if (r.pagadaSinFactura) {
+                    <span
+                      class="cartera__pagada"
+                      [matTooltip]="'El cliente ya pagó ' + (r.pagado | currency: 'COP' : 'symbol' : '1.0-0') + ' con recibo de caja y no hay factura'"
+                    >
+                      Pagada sin factura
+                    </span>
                   }
                 </td>
               </ng-container>
@@ -220,10 +235,22 @@
                   <span class="cartera__dias" [class]="'cartera__dias ' + claseDias(r.diasSinFacturar)">{{ r.diasSinFacturar }} días</span>
                 </td>
               </ng-container>
-              <ng-container matColumnDef="saldo">
+              <ng-container matColumnDef="valor">
                 <th mat-header-cell *matHeaderCellDef mat-sort-header class="cartera__num">Valor</th>
-                <td mat-cell *matCellDef="let r" data-label="Valor" class="cartera__num cartera__fuerte">
-                  {{ r.saldo | currency: 'COP' : 'symbol' : '1.0-0' }}
+                <td mat-cell *matCellDef="let r" data-label="Valor" class="cartera__num">
+                  {{ r.valor | currency: 'COP' : 'symbol' : '1.0-0' }}
+                </td>
+              </ng-container>
+              <ng-container matColumnDef="facturado">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header class="cartera__num">Facturado</th>
+                <td mat-cell *matCellDef="let r" data-label="Facturado" class="cartera__num" [class.cartera__secundario]="!r.facturado">
+                  {{ r.facturado | currency: 'COP' : 'symbol' : '1.0-0' }}
+                </td>
+              </ng-container>
+              <ng-container matColumnDef="pendiente">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header class="cartera__num">Por facturar</th>
+                <td mat-cell *matCellDef="let r" data-label="Por facturar" class="cartera__num cartera__fuerte">
+                  {{ r.pendienteFacturar | currency: 'COP' : 'symbol' : '1.0-0' }}
                 </td>
               </ng-container>
               <tr mat-header-row *matHeaderRowDef="columnasRemisiones"></tr>

@@ -67,7 +67,7 @@ export class CarteraComponent implements OnInit {
   private readonly snackBar = inject(MatSnackBar);
 
   readonly columnasClientes = ['seleccion', 'cliente', 'total', 'vencido', 'dias', 'contacto', 'envio'];
-  readonly columnasRemisiones = ['fecha', 'cliente', 'remision', 'dias', 'saldo'];
+  readonly columnasRemisiones = ['fecha', 'cliente', 'remision', 'dias', 'valor', 'facturado', 'pendiente'];
   readonly columnasEnvios = ['fecha', 'cliente', 'para', 'saldo', 'usuario', 'estado'];
 
   readonly cartera = signal<Cartera | null>(null);
@@ -150,7 +150,7 @@ export class CarteraComponent implements OnInit {
         meses.set(clave, mes);
       }
       mes.remisiones.push(r);
-      mes.total += r.saldo;
+      mes.total += r.pendienteFacturar;
     }
     const orden = this.ordenRemisiones();
     for (const mes of meses.values()) {
@@ -161,6 +161,9 @@ export class CarteraComponent implements OnInit {
 
   readonly totalRemisiones = computed(() => this.remisionesPorMes().reduce((t, m) => t + m.total, 0));
   readonly cantidadRemisiones = computed(() => this.remisionesPorMes().reduce((t, m) => t + m.remisiones.length, 0));
+
+  // Remisiones que el cliente ya pagó (recibo de caja contra la REM) sin que exista factura.
+  readonly pagadasSinFactura = computed(() => (this.remisiones() ?? []).filter((r) => r.pagadaSinFactura));
 
   ngOnInit(): void {
     this.cargar();
@@ -294,7 +297,9 @@ export class CarteraComponent implements OnInit {
       case 'cliente': return r.nombreCliente;
       case 'remision': return r.numero;
       case 'dias': return r.diasSinFacturar;
-      case 'saldo': return r.saldo;
+      case 'valor': return r.valor;
+      case 'facturado': return r.facturado;
+      case 'pendiente': return r.pendienteFacturar;
       default: return null;
     }
   }

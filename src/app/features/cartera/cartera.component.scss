@@ -182,6 +182,28 @@
     }
   }
 
+  &__aviso--rojo {
+    cursor: default;
+    border-color: color-mix(in srgb, var(--mat-sys-error) 40%, transparent);
+    background-color: color-mix(in srgb, var(--mat-sys-error) 6%, var(--mat-sys-surface));
+
+    > mat-icon {
+      color: var(--mat-sys-error);
+    }
+  }
+
+  &__pagada {
+    display: inline-block;
+    margin-left: 0.4rem;
+    padding: 0.05rem 0.5rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+    color: var(--mat-sys-error);
+    background-color: color-mix(in srgb, var(--mat-sys-error) 12%, transparent);
+  }
+
   &__aviso-accion {
     margin-left: auto;
     flex-shrink: 0;
@@ -290,10 +312,12 @@
   &__mes table {
     table-layout: fixed;
 
-    .mat-column-fecha { width: 8rem; }
-    .mat-column-remision { width: 11rem; }
-    .mat-column-dias { width: 9rem; }
-    .mat-column-saldo { width: 10rem; }
+    .mat-column-fecha { width: 7.5rem; }
+    .mat-column-remision { width: 12rem; }
+    .mat-column-dias { width: 8.5rem; }
+    .mat-column-valor,
+    .mat-column-facturado,
+    .mat-column-pendiente { width: 9rem; }
   }
 
   &__estado {
