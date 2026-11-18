@@ -1,6 +1,6 @@
 import { inject } from '@angular/core';
 import { Routes } from '@angular/router';
-import { authGuard, adminGuard, cotizacionGuard } from './core/guards/auth.guard';
+import { authGuard, adminGuard, carteraGuard, conciliacionGuard, cotizacionGuard } from './core/guards/auth.guard';
 import { AuthService } from './core/services/auth.service';
 
 export const routes: Routes = [
@@ -51,7 +51,13 @@ export const routes: Routes = [
       },
       {
         path: 'conciliacion',
-        loadComponent: () => import('./features/conciliacion/conciliacion.component').then((m) => m.ConciliacionComponent)
+        loadComponent: () => import('./features/conciliacion/conciliacion.component').then((m) => m.ConciliacionComponent),
+        canActivate: [conciliacionGuard]
+      },
+      {
+        path: 'cartera',
+        loadComponent: () => import('./features/cartera/cartera.component').then((m) => m.CarteraComponent),
+        canActivate: [carteraGuard]
       },
       {
         path: 'configuracion',

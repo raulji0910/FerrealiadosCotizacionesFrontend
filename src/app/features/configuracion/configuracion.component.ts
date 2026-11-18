@@ -6,11 +6,12 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ConfiguracionService } from '../../core/services/configuracion.service';
+import { ConfiguracionCarteraComponent } from './configuracion-cartera.component';
 
 @Component({
   selector: 'app-configuracion',
   standalone: true,
-  imports: [FormsModule, MatCardModule, MatFormFieldModule, MatInputModule, MatButtonModule],
+  imports: [FormsModule, MatCardModule, MatFormFieldModule, MatInputModule, MatButtonModule, ConfiguracionCarteraComponent],
   templateUrl: './configuracion.component.html',
   styleUrl: './configuracion.component.scss'
 })

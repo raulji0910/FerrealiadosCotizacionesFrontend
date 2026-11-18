@@ -1,0 +1,277 @@
+<div class="cartera">
+  <header class="cartera__header">
+    <div>
+      <h2>Cartera de clientes</h2>
+      <p class="cartera__descripcion">
+        Saldos de World Office (cuenta 1305) con los abonos ya descontados. El estado de cuenta se envía a los correos de cobro de
+        cada cliente, con copia a las cuentas configuradas.
+      </p>
+    </div>
+    <div class="cartera__corte">
+      @if (cartera(); as datos) {
+        <span matTooltip="Última vez que el Sincronizador trajo la cartera de World Office">
+          <mat-icon>sync</mat-icon>
+          Corte: {{ datos.fechaCorte ? (datos.fechaCorte + 'Z' | date: 'dd/MM/yyyy h:mm a') : 'sin sincronizar' }}
+        </span>
+      }
+      <button mat-icon-button (click)="cargar()" [disabled]="cargando()" aria-label="Actualizar" matTooltip="Actualizar">
+        <mat-icon>refresh</mat-icon>
+      </button>
+    </div>
+  </header>
+
+  @if (cargando()) {
+    <mat-progress-bar mode="indeterminate" />
+  }
+  @if (error()) {
+    <p class="cartera__error"><mat-icon>error</mat-icon> {{ error() }}</p>
+  }
+
+  <mat-tab-group mat-stretch-tabs="false" animationDuration="0ms" (selectedIndexChange)="alCambiarPestana($event)">
+    <!-- ================= Cartera por cliente ================= -->
+    <mat-tab label="Cartera por cliente">
+      @if (cartera(); as datos) {
+        <section class="cartera__tarjetas">
+          @for (t of tarjetas(); track t.titulo) {
+            <div class="cartera__tarjeta" [class]="'cartera__tarjeta cartera__tarjeta--' + t.clase">
+              <span class="cartera__tarjeta-titulo">{{ t.titulo }}</span>
+              <span class="cartera__tarjeta-valor">{{ t.valor | currency: 'COP' : 'symbol' : '1.0-0' }}</span>
+            </div>
+          }
+        </section>
+
+        <section class="cartera__panel cartera__filtros">
+          <mat-form-field appearance="outline" subscriptSizing="dynamic" class="cartera__buscar">
+            <mat-label>Cliente o NIT</mat-label>
+            <mat-icon matPrefix>search</mat-icon>
+            <input matInput [ngModel]="busqueda()" (ngModelChange)="busqueda.set($event)" />
+          </mat-form-field>
+          <mat-slide-toggle [checked]="soloVencidos()" (change)="soloVencidos.set($event.checked)">Solo con vencidos</mat-slide-toggle>
+          <mat-slide-toggle [checked]="soloSinContacto()" (change)="soloSinContacto.set($event.checked)">
+            Sin correo de cobro ({{ sinContacto() }})
+          </mat-slide-toggle>
+          <div class="cartera__acciones">
+            <button mat-stroked-button [disabled]="cantidadSeleccionados() === 0" (click)="enviarSeleccionados()">
+              <mat-icon>send</mat-icon>
+              Enviar a seleccionados ({{ cantidadSeleccionados() }})
+            </button>
+            <button mat-flat-button (click)="enviarVencidos()" [disabled]="!datos.totales.vencido">
+              <mat-icon>forward_to_inbox</mat-icon>
+              Enviar a todos los vencidos
+            </button>
+          </div>
+        </section>
+
+        <section class="cartera__panel cartera__tabla">
+          @if (clientesFiltrados().length === 0) {
+            <p class="cartera__vacio"><mat-icon>inbox</mat-icon> No hay clientes con estos filtros.</p>
+          } @else {
+            <table mat-table [dataSource]="clientesFiltrados()" class="tabla-responsiva">
+              <ng-container matColumnDef="seleccion">
+                <th mat-header-cell *matHeaderCellDef class="cartera__check">
+                  <mat-checkbox [checked]="todosSeleccionados()" (change)="alternarTodos($event.checked)" aria-label="Seleccionar todos" />
+                </th>
+                <td mat-cell *matCellDef="let c" data-label="Enviar" class="cartera__check" (click)="$event.stopPropagation()">
+                  <mat-checkbox [checked]="seleccion().has(c.nit)" (change)="alternar(c.nit, $event.checked)" [attr.aria-label]="'Seleccionar ' + c.nombre" />
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="cliente">
+                <th mat-header-cell *matHeaderCellDef>Cliente</th>
+                <td mat-cell *matCellDef="let c" data-label="Cliente">
+                  <div class="cartera__cliente">
+                    <strong>{{ c.nombre }}</strong>
+                    <small>NIT {{ c.nit }} · {{ c.documentos }} {{ c.documentos === 1 ? 'documento' : 'documentos' }}</small>
+                  </div>
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="total">
+                <th mat-header-cell *matHeaderCellDef class="cartera__num">Saldo</th>
+                <td mat-cell *matCellDef="let c" data-label="Saldo" class="cartera__num cartera__fuerte">
+                  {{ c.edades.total | currency: 'COP' : 'symbol' : '1.0-0' }}
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="vencido">
+                <th mat-header-cell *matHeaderCellDef class="cartera__num">Vencido</th>
+                <td mat-cell *matCellDef="let c" data-label="Vencido" class="cartera__num" [class.cartera__negativo]="c.edades.vencido > 0">
+                  {{ c.edades.vencido | currency: 'COP' : 'symbol' : '1.0-0' }}
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="dias">
+                <th mat-header-cell *matHeaderCellDef class="cartera__num">Mora</th>
+                <td mat-cell *matCellDef="let c" data-label="Mora" class="cartera__num">
+                  <span class="cartera__dias" [class]="'cartera__dias ' + claseDias(c.diasMaximoVencido)">
+                    {{ c.diasMaximoVencido > 0 ? c.diasMaximoVencido + ' días' : 'Al día' }}
+                  </span>
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="contacto">
+                <th mat-header-cell *matHeaderCellDef>Correo de cobro</th>
+                <td mat-cell *matCellDef="let c" data-label="Correo de cobro">
+                  @if (c.correosCobro) {
+                    <span class="cartera__correo" [matTooltip]="c.correosCobro">{{ c.correosCobro }}</span>
+                  } @else {
+                    <span class="cartera__sin-contacto"><mat-icon>warning</mat-icon> Sin correo</span>
+                  }
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="envio">
+                <th mat-header-cell *matHeaderCellDef>Último envío</th>
+                <td mat-cell *matCellDef="let c" data-label="Último envío">
+                  @if (c.ultimoEnvio; as e) {
+                    <span [class.cartera__negativo]="!e.exitoso" [matTooltip]="e.exitoso ? 'Enviado por ' + e.usuario : 'Falló: ' + e.error">
+                      {{ e.fecha + 'Z' | date: 'dd/MM/yy h:mm a' }}
+                      @if (!e.exitoso) {
+                        <mat-icon inline>error</mat-icon>
+                      }
+                    </span>
+                  } @else {
+                    <span class="cartera__secundario">Nunca</span>
+                  }
+                </td>
+              </ng-container>
+
+              <tr mat-header-row *matHeaderRowDef="columnasClientes"></tr>
+              <tr mat-row *matRowDef="let c; columns: columnasClientes" class="cartera__fila" (click)="abrirCliente(c)"></tr>
+            </table>
+          }
+        </section>
+        <p class="cartera__secundario">
+          No se envía a clientes sin correo de cobro ni con saldo menor a {{ datos.saldoMinimo | currency: 'COP' : 'symbol' : '1.0-0' }}.
+          Haz clic en un cliente para ver su estado de cuenta, editar sus correos o ver el correo antes de enviarlo.
+        </p>
+      }
+    </mat-tab>
+
+    <!-- ================= Remisiones sin factura ================= -->
+    <mat-tab label="Remisiones sin factura">
+      <section class="cartera__panel cartera__filtros">
+        <mat-form-field appearance="outline" subscriptSizing="dynamic" class="cartera__buscar">
+          <mat-label>Cliente, NIT o N.° de remisión</mat-label>
+          <mat-icon matPrefix>search</mat-icon>
+          <input matInput [ngModel]="busquedaRemisiones()" (ngModelChange)="busquedaRemisiones.set($event)" />
+        </mat-form-field>
+        @if (remisiones()) {
+          <span class="cartera__resumen-rem">
+            <strong>{{ cantidadRemisiones() | number }}</strong> remisiones ·
+            <strong>{{ totalRemisiones() | currency: 'COP' : 'symbol' : '1.0-0' }}</strong> sin facturar
+          </span>
+        }
+      </section>
+
+      @if (remisiones() === null) {
+        <mat-progress-bar mode="indeterminate" />
+      } @else if (remisionesPorMes().length === 0) {
+        <p class="cartera__vacio"><mat-icon>task_alt</mat-icon> No hay remisiones pendientes de facturar.</p>
+      } @else {
+        @for (mes of remisionesPorMes(); track mes.clave) {
+          <section class="cartera__panel cartera__tabla cartera__mes">
+            <header class="cartera__mes-titulo">
+              <span class="cartera__mes-nombre">{{ mes.fecha | date: 'MMMM yyyy' }}</span>
+              <span>
+                {{ mes.remisiones.length }} {{ mes.remisiones.length === 1 ? 'remisión' : 'remisiones' }} ·
+                <strong>{{ mes.total | currency: 'COP' : 'symbol' : '1.0-0' }}</strong>
+              </span>
+            </header>
+            <table mat-table [dataSource]="mes.remisiones" class="tabla-responsiva">
+              <ng-container matColumnDef="fecha">
+                <th mat-header-cell *matHeaderCellDef>Fecha</th>
+                <td mat-cell *matCellDef="let r" data-label="Fecha">{{ r.fecha | date: 'dd/MM/yyyy' }}</td>
+              </ng-container>
+              <ng-container matColumnDef="cliente">
+                <th mat-header-cell *matHeaderCellDef>Cliente</th>
+                <td mat-cell *matCellDef="let r" data-label="Cliente">
+                  <div class="cartera__cliente">
+                    {{ r.nombreCliente }}
+                    <small>NIT {{ r.nit }}</small>
+                  </div>
+                </td>
+              </ng-container>
+              <ng-container matColumnDef="remision">
+                <th mat-header-cell *matHeaderCellDef>Remisión</th>
+                <td mat-cell *matCellDef="let r" data-label="Remisión">
+                  <span class="cartera__fuerte">{{ r.prefijo }} {{ r.numero }}</span>
+                  @if (r.prefijo !== 'REM') {
+                    <small class="cartera__secundario"> · {{ r.tipoDocumento }}</small>
+                  }
+                </td>
+              </ng-container>
+              <ng-container matColumnDef="dias">
+                <th mat-header-cell *matHeaderCellDef class="cartera__num">Sin facturar</th>
+                <td mat-cell *matCellDef="let r" data-label="Sin facturar" class="cartera__num">
+                  <span class="cartera__dias" [class]="'cartera__dias ' + claseDias(r.diasSinFacturar)">{{ r.diasSinFacturar }} días</span>
+                </td>
+              </ng-container>
+              <ng-container matColumnDef="saldo">
+                <th mat-header-cell *matHeaderCellDef class="cartera__num">Valor</th>
+                <td mat-cell *matCellDef="let r" data-label="Valor" class="cartera__num cartera__fuerte">
+                  {{ r.saldo | currency: 'COP' : 'symbol' : '1.0-0' }}
+                </td>
+              </ng-container>
+              <tr mat-header-row *matHeaderRowDef="columnasRemisiones"></tr>
+              <tr mat-row *matRowDef="let r; columns: columnasRemisiones"></tr>
+            </table>
+          </section>
+        }
+      }
+    </mat-tab>
+
+    <!-- ================= Historial de envíos ================= -->
+    <mat-tab label="Envíos">
+      @if (envios() === null) {
+        <mat-progress-bar mode="indeterminate" />
+      } @else if (envios()!.length === 0) {
+        <p class="cartera__vacio"><mat-icon>outgoing_mail</mat-icon> Todavía no se ha enviado ningún estado de cuenta.</p>
+      } @else {
+        <section class="cartera__panel cartera__tabla">
+          <table mat-table [dataSource]="envios()!" class="tabla-responsiva">
+            <ng-container matColumnDef="fecha">
+              <th mat-header-cell *matHeaderCellDef>Fecha</th>
+              <td mat-cell *matCellDef="let e" data-label="Fecha">{{ e.fecha + 'Z' | date: 'dd/MM/yy h:mm a' }}</td>
+            </ng-container>
+            <ng-container matColumnDef="cliente">
+              <th mat-header-cell *matHeaderCellDef>Cliente</th>
+              <td mat-cell *matCellDef="let e" data-label="Cliente">
+                <div class="cartera__cliente">
+                  {{ e.nombreCliente }}
+                  <small>NIT {{ e.nit }}</small>
+                </div>
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="para">
+              <th mat-header-cell *matHeaderCellDef>Enviado a</th>
+              <td mat-cell *matCellDef="let e" data-label="Enviado a">
+                <span class="cartera__correo" [matTooltip]="e.copias ? 'CC: ' + e.copias : ''">{{ e.para }}</span>
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="saldo">
+              <th mat-header-cell *matHeaderCellDef class="cartera__num">Saldo</th>
+              <td mat-cell *matCellDef="let e" data-label="Saldo" class="cartera__num">{{ e.saldo | currency: 'COP' : 'symbol' : '1.0-0' }}</td>
+            </ng-container>
+            <ng-container matColumnDef="usuario">
+              <th mat-header-cell *matHeaderCellDef>Usuario</th>
+              <td mat-cell *matCellDef="let e" data-label="Usuario">{{ e.usuario }}</td>
+            </ng-container>
+            <ng-container matColumnDef="estado">
+              <th mat-header-cell *matHeaderCellDef>Estado</th>
+              <td mat-cell *matCellDef="let e" data-label="Estado">
+                @if (e.exitoso) {
+                  <span class="cartera__estado cartera__estado--ok">Enviado</span>
+                } @else {
+                  <span class="cartera__estado cartera__estado--error" [matTooltip]="e.error">Falló</span>
+                }
+              </td>
+            </ng-container>
+            <tr mat-header-row *matHeaderRowDef="columnasEnvios"></tr>
+            <tr mat-row *matRowDef="let e; columns: columnasEnvios"></tr>
+          </table>
+        </section>
+      }
+    </mat-tab>
+  </mat-tab-group>
+</div>

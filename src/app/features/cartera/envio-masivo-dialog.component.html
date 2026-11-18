@@ -1,0 +1,88 @@
+<h2 mat-dialog-title>Enviar estados de cuenta</h2>
+
+<mat-dialog-content>
+  @switch (paso()) {
+    @case ('confirmar') {
+      <p>Envío a {{ data.descripcion }}:</p>
+      <ul class="masivo__resumen">
+        <li class="masivo__ok">
+          <mat-icon>send</mat-icon>
+          <span>
+            <strong>{{ aEnviar.length }}</strong> {{ aEnviar.length === 1 ? 'cliente recibirá' : 'clientes recibirán' }} su estado de cuenta
+            ({{ totalAEnviar | currency: 'COP' : 'symbol' : '1.0-0' }}).
+          </span>
+        </li>
+        @if (sinCorreo.length) {
+          <li class="masivo__omitido">
+            <mat-icon>warning</mat-icon>
+            <span>
+              <strong>{{ sinCorreo.length }}</strong> sin correo de cobro, no se les envía:
+              {{ nombresSinCorreo }}.
+            </span>
+          </li>
+        }
+        @if (bajoMinimo.length) {
+          <li class="masivo__omitido">
+            <mat-icon>remove_circle_outline</mat-icon>
+            <span>
+              <strong>{{ bajoMinimo.length }}</strong> con saldo menor a {{ data.saldoMinimo | currency: 'COP' : 'symbol' : '1.0-0' }}, no se les envía.
+            </span>
+          </li>
+        }
+      </ul>
+      @if (aEnviar.length) {
+        <p class="masivo__nota">
+          Se envían de a uno, con una pausa entre correos para que el servidor de correo no los marque como spam
+          (unos {{ minutosAprox }} min). No cierres esta ventana mientras tanto.
+        </p>
+      }
+    }
+
+    @case ('enviando') {
+      <p>Enviando {{ resultados().length + 1 }} de {{ aEnviar.length }}: <strong>{{ actual() }}</strong></p>
+      <mat-progress-bar mode="determinate" [value]="avance()" />
+      <p class="masivo__nota">{{ enviados() }} enviados · {{ fallidos().length }} con error</p>
+    }
+
+    @case ('fin') {
+      <p class="masivo__final">
+        <mat-icon class="masivo__ok">check_circle</mat-icon>
+        {{ enviados() }} {{ enviados() === 1 ? 'estado de cuenta enviado' : 'estados de cuenta enviados' }}.
+        @if (detenido()) {
+          Se detuvo antes de terminar.
+        }
+      </p>
+      @if (fallidos().length) {
+        <div class="masivo__errores">
+          <strong>No se enviaron ({{ fallidos().length }}):</strong>
+          <ul>
+            @for (f of fallidos(); track $index) {
+              <li>{{ f.nombre }}: {{ f.motivo }}</li>
+            }
+          </ul>
+        </div>
+      }
+    }
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  @switch (paso()) {
+    @case ('confirmar') {
+      <button mat-button (click)="cerrar()">Cancelar</button>
+      <button mat-flat-button (click)="iniciar()" [disabled]="!aEnviar.length">
+        <mat-icon>send</mat-icon>
+        Enviar {{ aEnviar.length }}
+      </button>
+    }
+    @case ('enviando') {
+      <button mat-button (click)="pedirDetener()">
+        <mat-icon>stop</mat-icon>
+        Detener
+      </button>
+    }
+    @case ('fin') {
+      <button mat-flat-button (click)="cerrar()">Listo</button>
+    }
+  }
+</mat-dialog-actions>

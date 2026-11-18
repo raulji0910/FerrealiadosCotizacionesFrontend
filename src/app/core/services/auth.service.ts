@@ -61,9 +61,16 @@ export class AuthService {
     return this.sesion()?.rol === 'Conciliador';
   }
 
+  // El rol Cartera solo entra al módulo de cartera de clientes.
+  get esCartera(): boolean {
+    return this.sesion()?.rol === 'Cartera';
+  }
+
   // Pantalla a la que se llega al entrar o cuando se intenta abrir una sin permiso.
   get rutaInicio(): string {
-    return this.esConciliador ? '/conciliacion' : '/productos';
+    if (this.esConciliador) return '/conciliacion';
+    if (this.esCartera) return '/cartera';
+    return '/productos';
   }
 
   private leerSesionValida(): LoginResponse | null {

@@ -1,0 +1,62 @@
+.masivo {
+  &__resumen {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+
+    li {
+      display: flex;
+      gap: 0.5rem;
+      align-items: flex-start;
+    }
+
+    mat-icon {
+      flex-shrink: 0;
+    }
+  }
+
+  &__ok {
+    color: #2e7d32;
+
+    span {
+      color: var(--mat-sys-on-surface);
+    }
+  }
+
+  &__omitido {
+    mat-icon {
+      color: #a06b00;
+    }
+  }
+
+  &__nota {
+    margin: 1rem 0 0;
+    font-size: 0.85rem;
+    color: var(--mat-sys-on-surface-variant);
+  }
+
+  &__final {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  &__errores {
+    margin-top: 0.75rem;
+    padding: 0.6rem 0.75rem;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    color: var(--mat-sys-error);
+    background-color: color-mix(in srgb, var(--mat-sys-error) 8%, transparent);
+
+    ul {
+      margin: 0.35rem 0 0;
+      padding-left: 1.1rem;
+      max-height: 10rem;
+      overflow: auto;
+    }
+  }
+}

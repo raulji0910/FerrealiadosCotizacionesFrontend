@@ -25,7 +25,8 @@ export class UsuariosListComponent implements OnInit {
   private readonly etiquetasRol: Record<Rol, string> = {
     Admin: 'Administrador',
     Cotizador: 'Cotizador',
-    Conciliador: 'Conciliador'
+    Conciliador: 'Conciliador',
+    Cartera: 'Cartera'
   };
 
   constructor(

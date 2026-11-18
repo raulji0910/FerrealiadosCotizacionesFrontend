@@ -1,0 +1,73 @@
+<mat-card class="config-cartera">
+  <mat-card-header>
+    <mat-card-title>Envío de cartera</mat-card-title>
+  </mat-card-header>
+
+  <mat-card-content>
+    @if (config(); as c) {
+      <p class="config-cartera__estado" [class.config-cartera__estado--ok]="c.servidorCorreoConfigurado">
+        <mat-icon>{{ c.servidorCorreoConfigurado ? 'check_circle' : 'error' }}</mat-icon>
+        @if (c.servidorCorreoConfigurado) {
+          Servidor de correo configurado.
+        } @else {
+          El servidor de correo (cuenta y clave) todavía no está configurado en el servidor: se puede revisar la cartera pero no enviar.
+        }
+      </p>
+
+      <div class="config-cartera__fila">
+        <mat-form-field appearance="outline">
+          <mat-label>Correo remitente</mat-label>
+          <input matInput type="email" [(ngModel)]="c.remitente" name="remitente" />
+          <mat-hint>La misma cuenta del servidor de correo.</mat-hint>
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Nombre del remitente</mat-label>
+          <input matInput [(ngModel)]="c.nombreRemitente" name="nombreRemitente" />
+          <mat-hint>Sale como firma del correo.</mat-hint>
+        </mat-form-field>
+      </div>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Copias (CC, visibles para el cliente)</mat-label>
+        <textarea matInput rows="2" [(ngModel)]="c.copias" name="copias"></textarea>
+        <mat-hint>Separadas por punto y coma. Van en todos los envíos.</mat-hint>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="config-cartera__corto">
+        <mat-label>Saldo mínimo para enviar</mat-label>
+        <span matTextPrefix>$&nbsp;</span>
+        <input matInput type="number" min="0" step="1000" [(ngModel)]="c.saldoMinimo" name="saldoMinimo" />
+        <mat-hint>Por debajo no se envía.</mat-hint>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Asunto</mat-label>
+        <input matInput [(ngModel)]="c.asunto" name="asunto" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Texto del correo</mat-label>
+        <textarea matInput rows="7" [(ngModel)]="c.cuerpo" name="cuerpo"></textarea>
+        <mat-hint>Va antes de la tabla de documentos.</mat-hint>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Datos para el pago (opcional)</mat-label>
+        <textarea matInput rows="3" [(ngModel)]="c.datosPago" name="datosPago" placeholder="Cuenta de ahorros Bancolombia N.° … a nombre de FERREALIADOS JV"></textarea>
+        <mat-hint>Va después de la tabla.</mat-hint>
+      </mat-form-field>
+
+      <p class="config-cartera__ayuda">
+        En el asunto y el texto puedes usar: <code>{{ '{' }}cliente{{ '}' }}</code>, <code>{{ '{' }}nit{{ '}' }}</code>,
+        <code>{{ '{' }}fechaCorte{{ '}' }}</code>, <code>{{ '{' }}total{{ '}' }}</code> y <code>{{ '{' }}vencido{{ '}' }}</code>;
+        se reemplazan con los datos de cada cliente.
+      </p>
+
+      <div class="config-cartera__acciones">
+        <button mat-flat-button color="primary" [disabled]="guardando()" (click)="guardar()">
+          {{ guardando() ? 'Guardando...' : 'Guardar' }}
+        </button>
+      </div>
+    }
+  </mat-card-content>
+</mat-card>

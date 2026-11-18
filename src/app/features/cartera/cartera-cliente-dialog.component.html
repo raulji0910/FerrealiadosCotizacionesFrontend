@@ -1,0 +1,160 @@
+<div mat-dialog-title class="cliente__titulo">
+  <div>
+    <span class="cliente__sobretitulo">Estado de cuenta · NIT {{ data.nit }}</span>
+    <h2>{{ detalle()?.nombre ?? 'Cargando…' }}</h2>
+  </div>
+  <button mat-icon-button aria-label="Cerrar" (click)="cerrar()">
+    <mat-icon>close</mat-icon>
+  </button>
+</div>
+
+<mat-dialog-content class="cliente__contenido">
+  @if (cargando()) {
+    <mat-progress-bar mode="indeterminate" />
+  }
+
+  @if (detalle(); as d) {
+    <div class="cliente__edades">
+      <div><span>Saldo</span><strong>{{ d.edades.total | currency: 'COP' : 'symbol' : '1.0-0' }}</strong></div>
+      <div><span>Por vencer</span><strong>{{ d.edades.porVencer | currency: 'COP' : 'symbol' : '1.0-0' }}</strong></div>
+      <div><span>1-30</span><strong>{{ d.edades.de1A30 | currency: 'COP' : 'symbol' : '1.0-0' }}</strong></div>
+      <div><span>31-60</span><strong>{{ d.edades.de31A60 | currency: 'COP' : 'symbol' : '1.0-0' }}</strong></div>
+      <div><span>61-90</span><strong>{{ d.edades.de61A90 | currency: 'COP' : 'symbol' : '1.0-0' }}</strong></div>
+      <div class="cliente__mas90"><span>+90</span><strong>{{ d.edades.masDe90 | currency: 'COP' : 'symbol' : '1.0-0' }}</strong></div>
+    </div>
+
+    <mat-tab-group mat-stretch-tabs="false" animationDuration="0ms">
+      <mat-tab label="Documentos ({{ d.documentos.length }})">
+        <div class="cliente__tabla-contenedor">
+          <table class="cliente__tabla">
+            <thead>
+              <tr>
+                <th>Documento</th>
+                <th>Fecha</th>
+                <th>Vence</th>
+                <th class="cliente__num">Días</th>
+                <th class="cliente__num">Saldo</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (doc of d.documentos; track $index) {
+                <tr [class.cliente__vencido]="doc.diasVencido > 0 && doc.saldo > 0">
+                  <td>
+                    <strong>{{ doc.prefijo }} {{ doc.numero }}</strong>
+                    <small class="cliente__secundario"> {{ doc.tipoDocumento }}</small>
+                  </td>
+                  <td>{{ doc.fecha | date: 'dd/MM/yyyy' }}</td>
+                  <td>{{ doc.vencimiento | date: 'dd/MM/yyyy' }}</td>
+                  <td class="cliente__num">{{ doc.diasVencido > 0 ? doc.diasVencido : 'Al día' }}</td>
+                  <td class="cliente__num">{{ doc.saldo | currency: 'COP' : 'symbol' : '1.0-0' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </mat-tab>
+
+      <mat-tab label="Correo de cobro">
+        <div class="cliente__form">
+          <mat-form-field appearance="outline">
+            <mat-label>Correos de cobro</mat-label>
+            <textarea matInput rows="3" [(ngModel)]="correosCobro" placeholder="tesoreria@cliente.com; pagos@cliente.com"></textarea>
+            <mat-hint>Uno o varios, separados por punto y coma. A estos se envía el estado de cuenta.</mat-hint>
+          </mat-form-field>
+          <div class="cliente__fila-form">
+            <mat-form-field appearance="outline">
+              <mat-label>Persona de contacto</mat-label>
+              <input matInput [(ngModel)]="contacto" />
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Teléfono</mat-label>
+              <input matInput [(ngModel)]="telefono" />
+            </mat-form-field>
+          </div>
+
+          <div class="cliente__wo">
+            <mat-icon>info</mat-icon>
+            <div>
+              <strong>Correos en World Office</strong> (son los de facturación, solo de referencia):
+              {{ d.correosWorldOffice || 'no tiene' }}
+              @if (d.correosWorldOffice) {
+                <button mat-button (click)="usarCorreosWorldOffice()">
+                  <mat-icon>content_copy</mat-icon>
+                  Agregarlos a cobro
+                </button>
+              }
+            </div>
+          </div>
+
+          <div class="cliente__guardar">
+            <button mat-flat-button (click)="guardarContacto()" [disabled]="guardando()">
+              <mat-icon>save</mat-icon>
+              {{ guardando() ? 'Guardando…' : 'Guardar' }}
+            </button>
+          </div>
+        </div>
+      </mat-tab>
+
+      <mat-tab label="Vista previa del correo">
+        @if (correo(); as c) {
+          <dl class="cliente__cabecera-correo">
+            <dt>De</dt>
+            <dd>{{ c.remitente }}</dd>
+            <dt>Para</dt>
+            <dd>{{ c.para.length ? c.para.join('; ') : '— sin correo de cobro —' }}</dd>
+            <dt>CC</dt>
+            <dd>{{ c.copias.length ? c.copias.join('; ') : '—' }}</dd>
+            <dt>Asunto</dt>
+            <dd>{{ c.asunto }}</dd>
+          </dl>
+          <iframe class="cliente__iframe" title="Vista previa del correo" sandbox="" [srcdoc]="htmlCorreo()"></iframe>
+        } @else {
+          <mat-progress-bar mode="indeterminate" />
+        }
+      </mat-tab>
+
+      <mat-tab label="Envíos ({{ d.envios.length }})">
+        @if (d.envios.length === 0) {
+          <p class="cliente__secundario cliente__vacio">A este cliente todavía no se le ha enviado el estado de cuenta.</p>
+        } @else {
+          <div class="cliente__tabla-contenedor">
+            <table class="cliente__tabla">
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th>Enviado a</th>
+                  <th class="cliente__num">Saldo</th>
+                  <th>Usuario</th>
+                  <th>Estado</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (e of d.envios; track e.id) {
+                  <tr>
+                    <td>{{ e.fecha + 'Z' | date: 'dd/MM/yy h:mm a' }}</td>
+                    <td>{{ e.para }}</td>
+                    <td class="cliente__num">{{ e.saldo | currency: 'COP' : 'symbol' : '1.0-0' }}</td>
+                    <td>{{ e.usuario }}</td>
+                    <td [class.cliente__error]="!e.exitoso" [matTooltip]="e.error ?? ''">{{ e.exitoso ? 'Enviado' : 'Falló' }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </mat-tab>
+    </mat-tab-group>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions class="cliente__acciones">
+  @if (correo()?.noSePuedeEnviar; as motivo) {
+    <span class="cliente__motivo"><mat-icon>block</mat-icon> {{ motivo }}</span>
+  }
+  <span class="cliente__espacio"></span>
+  <button mat-button (click)="cerrar()">Cerrar</button>
+  <button mat-flat-button (click)="enviar()" [disabled]="!correo() || !!correo()?.noSePuedeEnviar || enviando()">
+    <mat-icon>send</mat-icon>
+    {{ enviando() ? 'Enviando…' : 'Enviar estado de cuenta' }}
+  </button>
+</mat-dialog-actions>
