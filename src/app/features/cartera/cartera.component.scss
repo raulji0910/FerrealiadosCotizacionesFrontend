@@ -338,6 +338,18 @@
   }
 }
 
+// En celular las tablas se vuelven tarjetas: sin anchos fijos de columna.
+@media (max-width: 768px) {
+  .cartera__mes table {
+    table-layout: auto;
+
+    td,
+    th {
+      width: auto !important;
+    }
+  }
+}
+
 @media (max-width: 1100px) {
   .cartera__tarjetas {
     grid-template-columns: repeat(3, minmax(0, 1fr));

@@ -1,7 +1,23 @@
 <div mat-dialog-title class="cliente__titulo">
-  <div>
-    <span class="cliente__sobretitulo">Estado de cuenta · NIT {{ data.nit }}</span>
+  <div class="cliente__identidad">
+    <span class="cliente__sobretitulo">Estado de cuenta</span>
     <h2>{{ detalle()?.nombre ?? 'Cargando…' }}</h2>
+    <div class="cliente__datos">
+      <span>NIT {{ data.nit }}</span>
+      @if (detalle(); as d) {
+        @if (d.correosCobro) {
+          <span><mat-icon>mail</mat-icon>{{ d.correosCobro }}</span>
+        } @else {
+          <span class="cliente__sin-correo"><mat-icon>warning</mat-icon>Sin correo de cobro</span>
+        }
+        @if (d.contacto) {
+          <span><mat-icon>person</mat-icon>{{ d.contacto }}</span>
+        }
+        @if (d.telefono) {
+          <span><mat-icon>call</mat-icon>{{ d.telefono }}</span>
+        }
+      }
+    </div>
   </div>
   <button mat-icon-button aria-label="Cerrar" (click)="cerrar()">
     <mat-icon>close</mat-icon>
@@ -14,14 +30,43 @@
   }
 
   @if (detalle(); as d) {
-    <div class="cliente__edades">
-      <div><span>Saldo</span><strong>{{ d.edades.total | currency: 'COP' : 'symbol' : '1.0-0' }}</strong></div>
-      <div><span>Por vencer</span><strong>{{ d.edades.porVencer | currency: 'COP' : 'symbol' : '1.0-0' }}</strong></div>
-      <div><span>1-30</span><strong>{{ d.edades.de1A30 | currency: 'COP' : 'symbol' : '1.0-0' }}</strong></div>
-      <div><span>31-60</span><strong>{{ d.edades.de31A60 | currency: 'COP' : 'symbol' : '1.0-0' }}</strong></div>
-      <div><span>61-90</span><strong>{{ d.edades.de61A90 | currency: 'COP' : 'symbol' : '1.0-0' }}</strong></div>
-      <div class="cliente__mas90"><span>+90</span><strong>{{ d.edades.masDe90 | currency: 'COP' : 'symbol' : '1.0-0' }}</strong></div>
-    </div>
+    <section class="cliente__resumen">
+      <div class="cliente__cifras">
+        <div>
+          <span>Saldo total</span>
+          <strong>{{ d.edades.total | currency: 'COP' : 'symbol' : '1.0-0' }}</strong>
+        </div>
+        <div>
+          <span>Vencido</span>
+          <strong [class.cliente__rojo]="d.edades.vencido > 0">
+            {{ d.edades.vencido | currency: 'COP' : 'symbol' : '1.0-0' }}
+            @if (d.edades.vencido > 0) {
+              <small>({{ porcentajeVencido() }}%)</small>
+            }
+          </strong>
+        </div>
+        <div>
+          <span>Mora máxima</span>
+          <strong [class.cliente__rojo]="moraMaxima() > 60">{{ moraMaxima() > 0 ? moraMaxima() + ' días' : 'Al día' }}</strong>
+        </div>
+      </div>
+
+      @if (segmentos().length) {
+        <div class="cliente__barra" role="img" aria-label="Saldo por edades de vencimiento">
+          @for (s of segmentos(); track s.clase) {
+            <div [class]="'cliente__tramo cliente__tramo--' + s.clase" [style.width.%]="s.porcentaje"></div>
+          }
+        </div>
+        <div class="cliente__leyenda">
+          @for (s of segmentos(); track s.clase) {
+            <span>
+              <i [class]="'cliente__punto cliente__tramo--' + s.clase"></i>
+              {{ s.titulo }} <strong>{{ s.valor | currency: 'COP' : 'symbol' : '1.0-0' }}</strong>
+            </span>
+          }
+        </div>
+      }
+    </section>
 
     <mat-tab-group mat-stretch-tabs="false" animationDuration="0ms">
       <mat-tab label="Documentos ({{ d.documentos.length }})">
@@ -30,26 +75,39 @@
             <thead>
               <tr>
                 <th>Documento</th>
-                <th>Fecha</th>
-                <th>Vence</th>
-                <th class="cliente__num">Días</th>
+                <th class="cliente__opcional">Fecha</th>
+                <th class="cliente__opcional">Vence</th>
+                <th class="cliente__num">Mora</th>
                 <th class="cliente__num">Saldo</th>
               </tr>
             </thead>
             <tbody>
               @for (doc of d.documentos; track $index) {
-                <tr [class.cliente__vencido]="doc.diasVencido > 0 && doc.saldo > 0">
+                <tr>
                   <td>
                     <strong>{{ doc.prefijo }} {{ doc.numero }}</strong>
-                    <small class="cliente__secundario"> {{ doc.tipoDocumento }}</small>
+                    <small class="cliente__secundario cliente__opcional"> {{ doc.tipoDocumento }}</small>
                   </td>
-                  <td>{{ doc.fecha | date: 'dd/MM/yyyy' }}</td>
-                  <td>{{ doc.vencimiento | date: 'dd/MM/yyyy' }}</td>
-                  <td class="cliente__num">{{ doc.diasVencido > 0 ? doc.diasVencido : 'Al día' }}</td>
+                  <td class="cliente__opcional">{{ doc.fecha | date: 'dd/MM/yyyy' }}</td>
+                  <td class="cliente__opcional">{{ doc.vencimiento | date: 'dd/MM/yyyy' }}</td>
+                  <td class="cliente__num">
+                    <span [class]="'cliente__dias cliente__tramo-texto--' + claseDias(doc.diasVencido, doc.saldo)">
+                      {{ doc.diasVencido > 0 && doc.saldo > 0 ? doc.diasVencido + ' días' : 'Al día' }}
+                    </span>
+                  </td>
                   <td class="cliente__num">{{ doc.saldo | currency: 'COP' : 'symbol' : '1.0-0' }}</td>
                 </tr>
               }
             </tbody>
+            <tfoot>
+              <tr>
+                <td>Total</td>
+                <td class="cliente__opcional"></td>
+                <td class="cliente__opcional"></td>
+                <td></td>
+                <td class="cliente__num">{{ d.edades.total | currency: 'COP' : 'symbol' : '1.0-0' }}</td>
+              </tr>
+            </tfoot>
           </table>
         </div>
       </mat-tab>

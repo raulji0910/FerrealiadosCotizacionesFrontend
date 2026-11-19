@@ -1,0 +1,87 @@
+<div mat-dialog-title class="rem__titulo">
+  <div>
+    <span class="rem__sobretitulo">Remisión · {{ r.fecha | date: 'dd/MM/yyyy' }} · {{ r.diasSinFacturar }} días</span>
+    <h2>REM {{ r.numero }}</h2>
+    <span class="rem__cliente">{{ r.nombreCliente }} · NIT {{ r.nit }}</span>
+  </div>
+  <button mat-icon-button mat-dialog-close aria-label="Cerrar">
+    <mat-icon>close</mat-icon>
+  </button>
+</div>
+
+<mat-dialog-content>
+  <div class="rem__cifras">
+    <div>
+      <span>Valor remisión</span>
+      <strong>{{ r.valor | currency: 'COP' : 'symbol' : '1.0-0' }}</strong>
+    </div>
+    <div>
+      <span>Facturado</span>
+      <strong>{{ r.facturado | currency: 'COP' : 'symbol' : '1.0-0' }}</strong>
+    </div>
+    <div class="rem__pendiente">
+      <span>Por facturar</span>
+      <strong>{{ r.pendienteFacturar | currency: 'COP' : 'symbol' : '1.0-0' }}</strong>
+    </div>
+  </div>
+  <div class="rem__barra" [attr.aria-label]="porcentajeFacturado + '% facturado'">
+    <div class="rem__barra-facturado" [style.width.%]="porcentajeFacturado"></div>
+  </div>
+  <p class="rem__secundario">{{ porcentajeFacturado }}% facturado</p>
+
+  @if (r.pagadaSinFactura) {
+    <p class="rem__alerta">
+      <mat-icon>report</mat-icon>
+      El cliente ya pagó {{ r.pagado | currency: 'COP' : 'symbol' : '1.0-0' }} con recibo de caja contra esta remisión, sin factura electrónica.
+    </p>
+  }
+
+  <h3>Facturas</h3>
+  @if (facturas.length === 0) {
+    <p class="rem__vacio">Ninguna factura le ha abonado a esta remisión.</p>
+  } @else {
+    <table class="rem__tabla">
+      <thead>
+        <tr><th>Factura</th><th>Fecha</th><th class="rem__num">Valor facturado</th></tr>
+      </thead>
+      <tbody>
+        @for (a of facturas; track $index) {
+          <tr>
+            <td><strong>FVE {{ a.numero }}</strong></td>
+            <td>{{ a.fecha | date: 'dd/MM/yyyy' }}</td>
+            <td class="rem__num">{{ a.valor | currency: 'COP' : 'symbol' : '1.0-0' }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+
+  @if (recibos.length || otros.length) {
+    <h3>Otros movimientos</h3>
+    <table class="rem__tabla">
+      <thead>
+        <tr><th>Documento</th><th>Fecha</th><th class="rem__num">Valor</th></tr>
+      </thead>
+      <tbody>
+        @for (a of recibos; track $index) {
+          <tr class="rem__fila-rc">
+            <td><strong>RC {{ a.numero }}</strong>&nbsp;<small>recibo de caja</small></td>
+            <td>{{ a.fecha | date: 'dd/MM/yyyy' }}</td>
+            <td class="rem__num">{{ a.valor | currency: 'COP' : 'symbol' : '1.0-0' }}</td>
+          </tr>
+        }
+        @for (a of otros; track $index) {
+          <tr>
+            <td><strong>{{ a.prefijo }} {{ a.numero }}</strong></td>
+            <td>{{ a.fecha | date: 'dd/MM/yyyy' }}</td>
+            <td class="rem__num">{{ a.valor | currency: 'COP' : 'symbol' : '1.0-0' }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-flat-button mat-dialog-close>Cerrar</button>
+</mat-dialog-actions>

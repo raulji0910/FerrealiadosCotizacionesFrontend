@@ -18,6 +18,7 @@ import { CarteraService } from '../../core/services/cartera.service';
 import { Cartera, ClienteCarteraResumen, EnvioCartera, RemisionSinFactura } from '../../core/models/cartera.model';
 import { CarteraClienteDialogComponent } from './cartera-cliente-dialog.component';
 import { EnvioMasivoDialogComponent, EnvioMasivoDialogData } from './envio-masivo-dialog.component';
+import { RemisionDetalleDialogComponent } from './remision-detalle-dialog.component';
 
 type ValorOrden = string | number | null;
 const sinOrden: Sort = { active: '', direction: '' };
@@ -255,6 +256,10 @@ export class CarteraComponent implements OnInit {
         this.envios.set(null);
       }
     });
+  }
+
+  abrirRemision(remision: RemisionSinFactura): void {
+    this.dialog.open(RemisionDetalleDialogComponent, { width: '36rem', maxWidth: '96vw', autoFocus: false, data: remision });
   }
 
   verPendientesDeCorreo(): void {

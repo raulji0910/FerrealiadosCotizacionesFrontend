@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { CurrencyPipe, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -56,6 +56,30 @@ export class CarteraClienteDialogComponent implements OnInit {
   readonly guardando = signal(false);
   readonly enviando = signal(false);
 
+  // Barra de edades: solo los tramos con saldo, en proporción al total.
+  readonly segmentos = computed(() => {
+    const e = this.detalle()?.edades;
+    if (!e) return [];
+    const tramos = [
+      { titulo: 'Por vencer', valor: e.porVencer, clase: 'al-dia' },
+      { titulo: '1-30 días', valor: e.de1A30, clase: 'd30' },
+      { titulo: '31-60 días', valor: e.de31A60, clase: 'd60' },
+      { titulo: '61-90 días', valor: e.de61A90, clase: 'd90' },
+      { titulo: 'Más de 90', valor: e.masDe90, clase: 'mas90' }
+    ].filter((t) => t.valor > 0);
+    const suma = tramos.reduce((s, t) => s + t.valor, 0);
+    return tramos.map((t) => ({ ...t, porcentaje: suma > 0 ? (t.valor / suma) * 100 : 0 }));
+  });
+
+  readonly porcentajeVencido = computed(() => {
+    const e = this.detalle()?.edades;
+    return e && e.total > 0 ? Math.round((e.vencido / e.total) * 100) : 0;
+  });
+
+  readonly moraMaxima = computed(() =>
+    Math.max(0, ...(this.detalle()?.documentos ?? []).filter((d) => d.saldo > 0).map((d) => d.diasVencido))
+  );
+
   correosCobro = '';
   contacto = '';
   telefono = '';
@@ -91,6 +115,14 @@ export class CarteraClienteDialogComponent implements OnInit {
         this.htmlCorreo.set(this.sanitizer.bypassSecurityTrustHtml(c.html));
       }
     });
+  }
+
+  claseDias(dias: number, saldo: number): string {
+    if (saldo <= 0 || dias <= 0) return 'al-dia';
+    if (dias > 90) return 'mas90';
+    if (dias > 60) return 'd90';
+    if (dias > 30) return 'd60';
+    return 'd30';
   }
 
   usarCorreosWorldOffice(): void {

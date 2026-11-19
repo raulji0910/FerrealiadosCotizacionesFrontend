@@ -112,6 +112,15 @@ export interface RemisionSinFactura {
   pagado: number;
   pendienteFacturar: number;
   pagadaSinFactura: boolean;
+  abonos: AbonoRemision[];
+}
+
+// Documento de WO que le abonó a una remisión (FVE = factura, RC = recibo de caja, otros = notas…).
+export interface AbonoRemision {
+  prefijo: string;
+  numero: number;
+  fecha: string;
+  valor: number;
 }
 
 export interface ConfiguracionCartera {

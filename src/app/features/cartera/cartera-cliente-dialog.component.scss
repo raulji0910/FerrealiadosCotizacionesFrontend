@@ -6,6 +6,12 @@
     gap: 0.75rem;
     padding-right: 0.5rem !important;
 
+    // Material le pone un ::before al título (para la línea base) que en flex ocupa espacio y
+    // empuja el texto hacia el centro.
+    &::before {
+      display: none;
+    }
+
     h2 {
       margin: 0;
       font: var(--mat-sys-headline-small);
@@ -22,39 +28,138 @@
     line-height: 1.4;
   }
 
-  &__contenido {
-    min-height: 24rem;
+  &__identidad {
+    min-width: 0;
   }
 
-  &__edades {
-    display: grid;
-    grid-template-columns: repeat(6, minmax(0, 1fr));
-    gap: 0.5rem;
+  &__datos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 1rem;
+    margin-top: 0.25rem;
+    font-size: 0.85rem;
+    line-height: 1.4;
+    color: var(--mat-sys-on-surface-variant);
+
+    span {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      min-width: 0;
+      word-break: break-word;
+    }
+
+    mat-icon {
+      flex-shrink: 0;
+      width: 1rem;
+      height: 1rem;
+      font-size: 1rem;
+    }
+  }
+
+  &__sin-correo {
+    color: #a06b00;
+  }
+
+  &__resumen {
+    padding: 1rem;
     margin-bottom: 0.5rem;
+    border-radius: 12px;
+    background-color: var(--mat-sys-surface-container-low);
+  }
+
+  &__cifras {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
 
     div {
       display: flex;
       flex-direction: column;
-      padding: 0.5rem 0.75rem;
-      border-radius: 8px;
-      background-color: var(--mat-sys-surface-container);
     }
 
     span {
-      font-size: 0.75rem;
+      font-size: 0.8rem;
       color: var(--mat-sys-on-surface-variant);
     }
 
     strong {
-      font-size: 0.95rem;
+      font-size: 1.5rem;
+      line-height: 1.25;
       white-space: nowrap;
+
+      small {
+        font-size: 0.85rem;
+        font-weight: 500;
+      }
     }
   }
 
-  &__mas90 strong {
-    color: #b71c1c;
+  &__rojo {
+    color: var(--mat-sys-error);
   }
 
+  &__barra {
+    display: flex;
+    height: 10px;
+    margin-top: 1rem;
+    border-radius: 999px;
+    overflow: hidden;
+    gap: 2px;
+    background-color: var(--mat-sys-surface-container-high);
+  }
+
+  &__tramo {
+    height: 100%;
+    min-width: 4px;
+  }
+
+  &__tramo--al-dia { background-color: #2e7d32; }
+  &__tramo--d30 { background-color: #f9a825; }
+  &__tramo--d60 { background-color: #ef6c00; }
+  &__tramo--d90 { background-color: #d84315; }
+  &__tramo--mas90 { background-color: #b71c1c; }
+
+  &__leyenda {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem 1.25rem;
+    margin-top: 0.5rem;
+    font-size: 0.8rem;
+    color: var(--mat-sys-on-surface-variant);
+
+    span {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    strong {
+      color: var(--mat-sys-on-surface);
+    }
+  }
+
+  &__punto {
+    display: inline-block;
+    width: 0.65rem;
+    height: 0.65rem;
+    border-radius: 50%;
+  }
+
+  &__dias {
+    padding: 0.1rem 0.5rem;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    white-space: nowrap;
+    color: var(--acento);
+    background-color: color-mix(in srgb, var(--acento) 12%, transparent);
+  }
+
+  &__tramo-texto--al-dia { --acento: #2e7d32; }
+  &__tramo-texto--d30 { --acento: #a06b00; }
+  &__tramo-texto--d60 { --acento: #ef6c00; }
+  &__tramo-texto--d90 { --acento: #d84315; }
+  &__tramo-texto--mas90 { --acento: #b71c1c; }
   &__tabla-contenedor {
     margin-top: 0.75rem;
     max-height: 22rem;
@@ -83,8 +188,15 @@
       background-color: var(--mat-sys-surface-container-high);
     }
 
-    tr:last-child td {
+    tbody tr:last-child td {
       border-bottom: 0;
+    }
+
+    tfoot td {
+      font-weight: 600;
+      border-top: 1px solid var(--mat-sys-outline-variant);
+      border-bottom: 0;
+      background-color: var(--mat-sys-surface-container-low);
     }
   }
 
@@ -206,8 +318,29 @@
 }
 
 @media (max-width: 600px) {
-  .cliente__edades {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+  // En celular las cifras van una debajo de otra y la tabla sin la fecha del documento.
+  .cliente__cifras {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+
+    div {
+      flex-direction: row;
+      justify-content: space-between;
+      align-items: baseline;
+    }
+
+    strong {
+      font-size: 1.05rem;
+    }
+  }
+
+  .cliente__opcional {
+    display: none;
+  }
+
+  .cliente__tabla th,
+  .cliente__tabla td {
+    padding: 0.4rem 0.5rem;
   }
 
   .cliente__fila-form {

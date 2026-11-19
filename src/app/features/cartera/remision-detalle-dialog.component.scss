@@ -1,0 +1,146 @@
+.rem {
+  &__titulo {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding-right: 0.5rem !important;
+
+    // Material le pone un ::before al título (para la línea base) que en flex ocupa espacio y
+    // empuja el texto hacia el centro.
+    &::before {
+      display: none;
+    }
+
+    h2 {
+      margin: 0;
+      font: var(--mat-sys-headline-small);
+      color: var(--mat-sys-on-surface);
+    }
+  }
+
+  &__sobretitulo {
+    display: block;
+    font-size: 0.75rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--mat-sys-on-surface-variant);
+    line-height: 1.4;
+  }
+
+  &__cliente {
+    display: block;
+    font-size: 0.875rem;
+    line-height: 1.4;
+    color: var(--mat-sys-on-surface-variant);
+  }
+
+  &__cifras {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.75rem;
+
+    div {
+      display: flex;
+      flex-direction: column;
+    }
+
+    span {
+      font-size: 0.8rem;
+      color: var(--mat-sys-on-surface-variant);
+    }
+
+    strong {
+      font-size: 1.15rem;
+      white-space: nowrap;
+    }
+  }
+
+  &__pendiente strong {
+    color: var(--mat-sys-error);
+  }
+
+  &__barra {
+    height: 8px;
+    margin-top: 0.75rem;
+    border-radius: 999px;
+    overflow: hidden;
+    background-color: color-mix(in srgb, var(--mat-sys-error) 18%, transparent);
+  }
+
+  &__barra-facturado {
+    height: 100%;
+    background-color: #2e7d32;
+  }
+
+  &__secundario {
+    margin: 0.3rem 0 0;
+    font-size: 0.8rem;
+    color: var(--mat-sys-on-surface-variant);
+  }
+
+  &__alerta {
+    display: flex;
+    gap: 0.5rem;
+    align-items: flex-start;
+    margin: 1rem 0 0;
+    padding: 0.6rem 0.75rem;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    color: var(--mat-sys-error);
+    background-color: color-mix(in srgb, var(--mat-sys-error) 8%, transparent);
+
+    mat-icon {
+      flex-shrink: 0;
+    }
+  }
+
+  h3 {
+    margin: 1.25rem 0 0.5rem;
+    font: var(--mat-sys-title-small);
+  }
+
+  &__vacio {
+    margin: 0;
+    color: var(--mat-sys-on-surface-variant);
+  }
+
+  &__tabla {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+    border: 1px solid var(--mat-sys-outline-variant);
+
+    th,
+    td {
+      padding: 0.45rem 0.75rem;
+      text-align: left;
+      border-bottom: 1px solid var(--mat-sys-outline-variant);
+    }
+
+    th {
+      font-weight: 600;
+      color: var(--mat-sys-on-surface-variant);
+      background-color: var(--mat-sys-surface-container-high);
+    }
+
+    small {
+      color: var(--mat-sys-on-surface-variant);
+    }
+  }
+
+  &__fila-rc td {
+    color: var(--mat-sys-error);
+  }
+
+  &__num {
+    text-align: right !important;
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 600px) {
+  .rem__cifras strong {
+    font-size: 0.95rem;
+  }
+}
