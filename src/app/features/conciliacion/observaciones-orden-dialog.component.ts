@@ -46,6 +46,7 @@ export class ObservacionesOrdenDialogComponent implements OnInit {
   readonly orden = signal<ObservacionesOrden | null>(null);
   readonly guardando = signal(false);
   readonly error = signal<string | null>(null);
+  readonly faltaTexto = signal(false);
 
   texto = '';
   // Marcar (si no está marcada) o quitar la marca (si lo está) junto con la observación.
@@ -67,7 +68,12 @@ export class ObservacionesOrdenDialogComponent implements OnInit {
 
   guardar(): void {
     const orden = this.orden();
-    if (!orden || !this.texto.trim()) return;
+    if (!orden) return;
+    // El motivo es obligatorio (también para marcar/quitar la marca): se avisa en vez de no hacer nada.
+    if (!this.texto.trim()) {
+      this.faltaTexto.set(true);
+      return;
+    }
     const accion: AccionObservacionOrden = !this.cambiarMarca
       ? 'Observacion'
       : orden.noRequiereFactura
@@ -81,6 +87,7 @@ export class ObservacionesOrdenDialogComponent implements OnInit {
         this.orden.set(o);
         this.texto = '';
         this.cambiarMarca = false;
+        this.faltaTexto.set(false);
         this.huboCambios = true;
         this.guardando.set(false);
       },
@@ -89,6 +96,16 @@ export class ObservacionesOrdenDialogComponent implements OnInit {
         this.error.set(typeof e.error === 'string' && e.error ? e.error : 'No se pudo guardar la observación.');
       }
     });
+  }
+
+  etiquetaCampo(marcada: boolean): string {
+    if (!this.cambiarMarca) return 'Nueva observación';
+    return marcada ? '¿Por qué se quita la marca? (obligatorio)' : '¿Por qué no requiere factura? (obligatorio)';
+  }
+
+  textoBoton(marcada: boolean): string {
+    if (!this.cambiarMarca) return 'Agregar observación';
+    return marcada ? 'Quitar la marca' : 'Marcar como no requiere factura';
   }
 
   cerrar(): void {
