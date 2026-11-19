@@ -5,20 +5,93 @@
 
   <mat-card-content>
     @if (config(); as c) {
-      <p class="config-cartera__estado" [class.config-cartera__estado--ok]="c.servidorCorreoConfigurado">
-        <mat-icon>{{ c.servidorCorreoConfigurado ? 'check_circle' : 'error' }}</mat-icon>
-        @if (c.servidorCorreoConfigurado) {
-          Servidor de correo configurado.
+      <section class="clave">
+        <h3 class="clave__titulo"><mat-icon>key</mat-icon> Clave del correo remitente</h3>
+
+        <p class="config-cartera__estado" [class.config-cartera__estado--ok]="c.servidorCorreoConfigurado">
+          <mat-icon>{{ c.servidorCorreoConfigurado ? 'check_circle' : 'error' }}</mat-icon>
+          <span>
+            @switch (c.origenClaveCorreo) {
+              @case ('Aplicacion') {
+                Clave de <strong>{{ remitenteGuardado() }}</strong> guardada{{ detalleClave(c) }}. Ya se pueden enviar estados de cuenta.
+              }
+              @case ('Servidor') {
+                La clave está puesta en el servidor (.env) y es la que se usa. Ya se pueden enviar estados de cuenta.
+              }
+              @default {
+                @if (c.claveCorreoDeOtraCuenta) {
+                  La clave guardada es de {{ c.claveCorreoDeOtraCuenta }}, pero el remitente ahora es
+                  <strong>{{ remitenteGuardado() }}</strong>: guarda la clave de esa cuenta.
+                } @else {
+                  Falta la clave de <strong>{{ remitenteGuardado() }}</strong>: se puede revisar la cartera pero no enviar.
+                }
+              }
+            }
+          </span>
+        </p>
+
+        @if (editandoClave() || !c.servidorCorreoConfigurado) {
+          <div class="clave__form">
+            <mat-form-field appearance="outline">
+              <mat-label>Clave del correo</mat-label>
+              <input
+                matInput
+                [type]="verClave() ? 'text' : 'password'"
+                [(ngModel)]="clave"
+                (ngModelChange)="errorClave.set(null)"
+                (keydown.enter)="guardarClave()"
+                name="claveCorreo"
+                autocomplete="new-password"
+              />
+              <button mat-icon-button matSuffix type="button" (click)="verClave.set(!verClave())"
+                [attr.aria-label]="verClave() ? 'Ocultar clave' : 'Mostrar clave'">
+                <mat-icon>{{ verClave() ? 'visibility_off' : 'visibility' }}</mat-icon>
+              </button>
+              <mat-hint>La de {{ remitenteGuardado() }}, la misma con la que se entra al correo. Se comprueba antes de guardarla.</mat-hint>
+            </mat-form-field>
+            @if (errorClave()) {
+              <p class="clave__error"><mat-icon>error</mat-icon> {{ errorClave() }}</p>
+            }
+            <div class="clave__botones">
+              @if (editandoClave() && c.servidorCorreoConfigurado) {
+                <button mat-button type="button" (click)="cancelarClave()">Cancelar</button>
+              }
+              <button mat-flat-button type="button" [disabled]="guardandoClave()" (click)="guardarClave()">
+                <mat-icon>lock</mat-icon>
+                {{ guardandoClave() ? 'Comprobando...' : 'Comprobar y guardar clave' }}
+              </button>
+            </div>
+          </div>
         } @else {
-          El servidor de correo (cuenta y clave) todavía no está configurado en el servidor: se puede revisar la cartera pero no enviar.
+          <div class="clave__botones clave__botones--izq">
+            <button mat-stroked-button type="button" [disabled]="probando()" (click)="probar()">
+              <mat-icon>wifi_tethering</mat-icon> {{ probando() ? 'Probando...' : 'Probar conexión' }}
+            </button>
+            @if (c.origenClaveCorreo === 'Aplicacion') {
+              <button mat-button type="button" (click)="editandoClave.set(true)">
+                <mat-icon>edit</mat-icon> Cambiar clave
+              </button>
+            }
+          </div>
         }
-      </p>
+
+        @if (prueba(); as p) {
+          <p class="config-cartera__estado" [class.config-cartera__estado--ok]="p.exitosa">
+            <mat-icon>{{ p.exitosa ? 'check_circle' : 'error' }}</mat-icon> <span>{{ p.mensaje }}</span>
+          </p>
+        }
+
+        <p class="config-cartera__ayuda">
+          La clave se guarda cifrada y nunca se vuelve a mostrar, ni aquí ni a nadie. Si cambian la clave del correo
+          en ColombiaHosting, hay que guardarla de nuevo aquí.
+        </p>
+      </section>
 
       <div class="config-cartera__fila">
         <mat-form-field appearance="outline">
           <mat-label>Correo remitente</mat-label>
           <input matInput type="email" [(ngModel)]="c.remitente" name="remitente" />
-          <mat-hint>La misma cuenta del servidor de correo.</mat-hint>
+          <mat-hint>Si lo cambias, hay que guardar la clave de la cuenta nueva.</mat-hint>
         </mat-form-field>
         <mat-form-field appearance="outline">
           <mat-label>Nombre del remitente</mat-label>

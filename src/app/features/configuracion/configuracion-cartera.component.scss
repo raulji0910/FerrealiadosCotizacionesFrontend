@@ -53,6 +53,57 @@
   }
 }
 
+.clave {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 12px;
+
+  &__titulo {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0;
+    font: var(--mat-sys-title-medium);
+  }
+
+  &__form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  &__error {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin: 0.75rem 0 0;
+    font-size: 0.875rem;
+    color: var(--mat-sys-error);
+  }
+
+  &__botones {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.5rem;
+
+    &--izq {
+      justify-content: flex-start;
+    }
+  }
+
+  .config-cartera__estado {
+    margin: 0;
+
+    mat-icon {
+      flex-shrink: 0;
+    }
+  }
+}
+
 @media (max-width: 600px) {
   .config-cartera__fila {
     flex-direction: column;

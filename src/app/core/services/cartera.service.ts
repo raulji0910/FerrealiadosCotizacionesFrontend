@@ -9,6 +9,7 @@ import {
   ContactoCobro,
   CorreoCartera,
   EnvioCartera,
+  PruebaCorreo,
   RemisionSinFactura,
   ResultadoEnvioCartera
 } from '../models/cartera.model';
@@ -53,5 +54,14 @@ export class CarteraService {
 
   actualizarConfiguracion(dto: ConfiguracionCartera): Observable<ConfiguracionCartera> {
     return this.http.put<ConfiguracionCartera>(`${this.baseUrl}/configuracion`, dto);
+  }
+
+  // El servidor comprueba la clave con el servidor de correo antes de guardarla (cifrada).
+  guardarClaveCorreo(clave: string): Observable<ConfiguracionCartera> {
+    return this.http.put<ConfiguracionCartera>(`${this.baseUrl}/configuracion/clave-correo`, { clave });
+  }
+
+  probarCorreo(): Observable<PruebaCorreo> {
+    return this.http.post<PruebaCorreo>(`${this.baseUrl}/configuracion/probar-correo`, {});
   }
 }

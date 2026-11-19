@@ -132,4 +132,14 @@ export interface ConfiguracionCartera {
   cuerpo: string;
   datosPago: string | null;
   servidorCorreoConfigurado: boolean;
+  // De dónde sale la clave del remitente (solo lectura). La clave en sí nunca llega al navegador.
+  origenClaveCorreo: 'Servidor' | 'Aplicacion' | 'Ninguna';
+  claveCorreoActualizada: string | null;
+  claveCorreoActualizadaPor: string | null;
+  claveCorreoDeOtraCuenta: string | null;
+}
+
+export interface PruebaCorreo {
+  exitosa: boolean;
+  mensaje: string;
 }
