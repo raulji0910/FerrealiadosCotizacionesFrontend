@@ -117,6 +117,21 @@
 
     <section class="conciliacion__panel conciliacion__tabla">
       @if (filtro() === 'OrdenesPendientes') {
+        <div class="conciliacion__revision" role="group" aria-label="Filtrar por revisión">
+          <span>Revisión:</span>
+          @for (r of opcionesRevision; track r.valor) {
+            <button
+              type="button"
+              class="conciliacion__chip"
+              [class.conciliacion__chip--activo]="revision() === r.valor"
+              [attr.aria-pressed]="revision() === r.valor"
+              (click)="cambiarRevision(r.valor)"
+            >
+              {{ r.titulo }} ({{ conteoRevision()[r.valor] }})
+            </button>
+          }
+          <span class="conciliacion__secundario">Haz clic en una OC para ver o agregar observaciones.</span>
+        </div>
         @if (totalFilas() === 0) {
           <p class="conciliacion__vacio">
             <mat-icon>inbox</mat-icon>
@@ -167,9 +182,25 @@
                 {{ oc.saldoSubtotal | currency: 'COP' : 'symbol' : '1.0-0' }}
               </td>
             </ng-container>
+            <ng-container matColumnDef="revision">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Revisión</th>
+              <td mat-cell *matCellDef="let oc" data-label="Revisión">
+                @if (oc.noRequiereFactura) {
+                  <span class="conciliacion__revisada conciliacion__revisada--no-requiere" [matTooltip]="oc.ultimaObservacion ?? ''">
+                    <mat-icon>task_alt</mat-icon> No requiere factura
+                  </span>
+                } @else if (oc.observaciones > 0) {
+                  <span class="conciliacion__revisada" [matTooltip]="oc.ultimaObservacion ?? ''">
+                    <mat-icon>check_circle</mat-icon> {{ oc.observaciones }} {{ oc.observaciones === 1 ? 'observación' : 'observaciones' }}
+                  </span>
+                } @else {
+                  <span class="conciliacion__secundario">Sin revisar</span>
+                }
+              </td>
+            </ng-container>
 
             <tr mat-header-row *matHeaderRowDef="columnasOrdenes; sticky: true"></tr>
-            <tr mat-row *matRowDef="let oc; columns: columnasOrdenes"></tr>
+            <tr mat-row *matRowDef="let oc; columns: columnasOrdenes" class="conciliacion__fila" (click)="verObservaciones(oc)"></tr>
           </table>
         }
       } @else if (filtro() === 'FacturadasSinXml') {

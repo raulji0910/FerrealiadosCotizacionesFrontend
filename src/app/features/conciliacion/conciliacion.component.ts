@@ -24,10 +24,12 @@ import {
 } from '../../core/models/conciliacion.model';
 import { ConciliacionDetalleDialogComponent } from './conciliacion-detalle-dialog.component';
 import { CargaDianDialogComponent } from './carga-dian-dialog.component';
+import { ObservacionesOrdenDialogComponent } from './observaciones-orden-dialog.component';
 import { AuthService } from '../../core/services/auth.service';
 
 type Filtro = 'Todas' | EstadoConciliacion | 'OrdenesPendientes' | 'FacturadasSinXml' | 'ReferenciasInvalidas';
 type Tabla = 'facturas' | 'ordenes' | 'facturadas' | 'invalidas';
+type RevisionOrden = 'Todas' | 'SinRevisar' | 'ConObservacion' | 'NoRequiereFactura';
 type ValorOrden = string | number | null;
 
 const sinOrden: Sort = { active: '', direction: '' };
@@ -69,7 +71,7 @@ interface Tarjeta {
 })
 export class ConciliacionComponent implements OnInit {
   readonly columnasFacturas = ['fecha', 'proveedor', 'factura', 'subtotal', 'iva', 'oc', 'diferencia', 'estado', 'acciones'];
-  readonly columnasOrdenes = ['fecha', 'dias', 'proveedor', 'oc', 'subtotal', 'saldo'];
+  readonly columnasOrdenes = ['fecha', 'dias', 'proveedor', 'oc', 'subtotal', 'saldo', 'revision'];
   readonly columnasFacturadas = ['fecha', 'proveedor', 'oc', 'subtotal', 'fc', 'documento'];
   readonly columnasInvalidas = ['fecha', 'proveedor', 'fc', 'documento', 'referencia', 'motivo'];
 
@@ -205,9 +207,37 @@ export class ConciliacionComponent implements OnInit {
     return this.ordenarLista(filtradas, this.ordenFacturas(), (f, columna) => this.valorFactura(f, columna));
   });
 
-  private readonly ordenesOrdenadas = computed(() =>
-    this.ordenarLista(this.ordenesBuscadas(), this.ordenOrdenes(), (o, columna) => this.valorOrden(o, columna))
-  );
+  // Filtro por estado de revisión de las OC sin factura (no cambia la tarjeta: la OC sigue pendiente).
+  readonly revision = signal<RevisionOrden>('Todas');
+
+  readonly opcionesRevision: { valor: RevisionOrden; titulo: string }[] = [
+    { valor: 'Todas', titulo: 'Todas' },
+    { valor: 'SinRevisar', titulo: 'Sin revisar' },
+    { valor: 'ConObservacion', titulo: 'Con observación' },
+    { valor: 'NoRequiereFactura', titulo: 'No requiere factura' }
+  ];
+
+  readonly conteoRevision = computed(() => {
+    const ordenes = this.ordenesBuscadas();
+    return {
+      Todas: ordenes.length,
+      SinRevisar: ordenes.filter((o) => o.observaciones === 0).length,
+      ConObservacion: ordenes.filter((o) => o.observaciones > 0).length,
+      NoRequiereFactura: ordenes.filter((o) => o.noRequiereFactura).length
+    } satisfies Record<RevisionOrden, number>;
+  });
+
+  private readonly ordenesOrdenadas = computed(() => {
+    const revision = this.revision();
+    const ordenes = this.ordenesBuscadas().filter(
+      (o) =>
+        revision === 'Todas' ||
+        (revision === 'SinRevisar' && o.observaciones === 0) ||
+        (revision === 'ConObservacion' && o.observaciones > 0) ||
+        (revision === 'NoRequiereFactura' && o.noRequiereFactura)
+    );
+    return this.ordenarLista(ordenes, this.ordenOrdenes(), (o, columna) => this.valorOrden(o, columna));
+  });
 
   private readonly facturadasOrdenadas = computed(() =>
     this.ordenarLista(this.facturadasBuscadas(), this.ordenFacturadas(), (o, columna) => this.valorFacturada(o, columna))
@@ -301,6 +331,26 @@ export class ConciliacionComponent implements OnInit {
     dialogRef.afterOpened().subscribe(() => window.dispatchEvent(new Event('resize')));
   }
 
+  cambiarRevision(revision: RevisionOrden): void {
+    this.revision.set(revision);
+    this.pageIndex.set(0);
+  }
+
+  // Historial de revisión de una OC sin factura. Si se agregó algo, se recarga para ver el ✔.
+  verObservaciones(orden: OrdenPendiente): void {
+    this.dialog
+      .open(ObservacionesOrdenDialogComponent, {
+        width: '44rem',
+        maxWidth: '95vw',
+        autoFocus: false,
+        data: { idAsientoContable: orden.idAsientoContable, puedeEscribir: this.puedeCargar }
+      })
+      .afterClosed()
+      .subscribe((cambio) => {
+        if (cambio) this.cargar();
+      });
+  }
+
   abrirCargaDian(): void {
     this.dialog
       .open(CargaDianDialogComponent, { width: '56rem', maxWidth: '95vw', disableClose: true, autoFocus: 'dialog' })
@@ -361,6 +411,7 @@ export class ConciliacionComponent implements OnInit {
       case 'oc': return o.numero;
       case 'subtotal': return o.subtotal;
       case 'saldo': return o.saldoSubtotal;
+      case 'revision': return o.noRequiereFactura ? 2 : o.observaciones > 0 ? 1 : 0;
       default: return null;
     }
   }

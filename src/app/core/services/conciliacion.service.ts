@@ -2,7 +2,13 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpEvent } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { CargaArchivosResultado, Conciliacion, DetalleFacturaConciliada } from '../models/conciliacion.model';
+import {
+  AccionObservacionOrden,
+  CargaArchivosResultado,
+  Conciliacion,
+  DetalleFacturaConciliada,
+  ObservacionesOrden
+} from '../models/conciliacion.model';
 
 @Injectable({ providedIn: 'root' })
 export class ConciliacionService {
@@ -13,6 +19,14 @@ export class ConciliacionService {
   // Fechas como 'yyyy-MM-dd' (DateOnly del backend).
   conciliar(desde: string, hasta: string): Observable<Conciliacion> {
     return this.http.get<Conciliacion>(this.baseUrl, { params: { desde, hasta } });
+  }
+
+  observaciones(idAsientoContable: number): Observable<ObservacionesOrden> {
+    return this.http.get<ObservacionesOrden>(`${this.baseUrl}/ordenes/${idAsientoContable}/observaciones`);
+  }
+
+  agregarObservacion(idAsientoContable: number, texto: string, accion: AccionObservacionOrden): Observable<ObservacionesOrden> {
+    return this.http.post<ObservacionesOrden>(`${this.baseUrl}/ordenes/${idAsientoContable}/observaciones`, { texto, accion });
   }
 
   obtenerDetalle(facturaId: number): Observable<DetalleFacturaConciliada> {

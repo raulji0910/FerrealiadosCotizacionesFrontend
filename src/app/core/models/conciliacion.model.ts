@@ -60,6 +60,35 @@ export interface OrdenPendiente {
   subtotal: number;
   iva: number;
   saldoSubtotal: number;
+  idAsientoContable: number;
+  // Historial de revisión: cuántas entradas tiene, la más reciente y si quedó marcada como que no
+  // requiere factura (la OC sigue en la lista igual).
+  observaciones: number;
+  ultimaObservacion: string | null;
+  noRequiereFactura: boolean;
+}
+
+export type AccionObservacionOrden = 'Observacion' | 'MarcarNoRequiereFactura' | 'QuitarMarcaNoRequiereFactura';
+
+export interface ObservacionOrden {
+  id: number;
+  tipo: 'Observacion' | 'MarcaNoRequiereFactura' | 'QuitaMarcaNoRequiereFactura';
+  texto: string;
+  usuario: string;
+  nombreUsuario: string;
+  fecha: string; // UTC sin zona
+}
+
+export interface ObservacionesOrden {
+  idAsientoContable: number;
+  numero: number;
+  fecha: string;
+  nitProveedor: string;
+  nombreProveedor: string;
+  subtotal: number;
+  iva: number;
+  noRequiereFactura: boolean;
+  historial: ObservacionOrden[];
 }
 
 // OC que una FC de World Office dice cubrir, pero cuyo XML no llegó: falta bajarlo de la DIAN.

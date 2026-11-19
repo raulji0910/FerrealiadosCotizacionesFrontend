@@ -356,3 +356,51 @@
     }
   }
 }
+
+// Filtro por revisión y estado de revisión de las OC sin factura.
+.conciliacion__revision {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
+  font-size: 0.85rem;
+}
+
+.conciliacion__chip {
+  padding: 0.25rem 0.75rem;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 999px;
+  background: none;
+  color: var(--mat-sys-on-surface);
+  font: inherit;
+  cursor: pointer;
+
+  &--activo {
+    border-color: var(--mat-sys-primary);
+    background-color: color-mix(in srgb, var(--mat-sys-primary) 10%, transparent);
+    color: var(--mat-sys-primary);
+    font-weight: 600;
+  }
+}
+
+.conciliacion__revisada {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.85rem;
+  color: #2e7d32;
+  white-space: nowrap;
+
+  mat-icon {
+    width: 1.1rem;
+    height: 1.1rem;
+    font-size: 1.1rem;
+  }
+
+  &--no-requiere {
+    color: #00695c;
+    font-weight: 600;
+  }
+}
