@@ -31,17 +31,30 @@
     @if (data.puedeEscribir) {
       <div class="obs__nueva">
         <mat-form-field appearance="outline">
-          <mat-label>Nueva observación</mat-label>
-          <textarea matInput rows="3" maxlength="2000" [(ngModel)]="texto" placeholder="Qué se encontró al revisar esta OC"></textarea>
+          <mat-label>{{ etiquetaCampo(o.noRequiereFactura) }}</mat-label>
+          <textarea
+            matInput
+            rows="3"
+            maxlength="2000"
+            [(ngModel)]="texto"
+            (ngModelChange)="faltaTexto.set(false)"
+            [placeholder]="cambiarMarca ? 'Ej.: se devolvió toda la mercancía' : 'Qué se encontró al revisar esta OC'"
+          ></textarea>
           <mat-hint align="end">{{ texto.length }}/2000</mat-hint>
         </mat-form-field>
+        @if (faltaTexto()) {
+          <p class="obs__error obs__error--campo">
+            <mat-icon>error</mat-icon>
+            {{ cambiarMarca ? 'Escribe el motivo: es obligatorio para ' + (o.noRequiereFactura ? 'quitar' : 'poner') + ' la marca.' : 'Escribe la observación.' }}
+          </p>
+        }
         <div class="obs__acciones">
           <mat-checkbox [(ngModel)]="cambiarMarca">
             {{ o.noRequiereFactura ? 'Quitar la marca "No requiere factura"' : 'Marcar como "No requiere factura"' }}
           </mat-checkbox>
-          <button mat-flat-button (click)="guardar()" [disabled]="!texto.trim() || guardando()">
-            <mat-icon>add_comment</mat-icon>
-            {{ guardando() ? 'Guardando…' : 'Agregar' }}
+          <button mat-flat-button (click)="guardar()" [disabled]="guardando()">
+            <mat-icon>{{ cambiarMarca ? (o.noRequiereFactura ? 'remove_done' : 'task_alt') : 'add_comment' }}</mat-icon>
+            {{ guardando() ? 'Guardando…' : textoBoton(o.noRequiereFactura) }}
           </button>
         </div>
         <p class="obs__ayuda">Las observaciones no se editan ni se borran: si algo cambia, agrega otra. La OC sigue en la lista hasta que llegue su factura.</p>
