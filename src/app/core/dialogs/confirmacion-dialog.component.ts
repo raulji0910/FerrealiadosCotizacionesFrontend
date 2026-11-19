@@ -6,6 +6,7 @@ export interface ConfirmacionDialogData {
   titulo: string;
   mensaje: string;
   textoConfirmar?: string;
+  textoCancelar?: string;
   colorConfirmar?: 'warn' | 'primary';
 }
 

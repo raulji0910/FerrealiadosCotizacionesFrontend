@@ -12,6 +12,7 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSortModule, Sort } from '@angular/material/sort';
+import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { CarteraService } from '../../core/services/cartera.service';
@@ -57,7 +58,8 @@ interface MesRemisiones {
     MatSlideToggleModule,
     MatTabsModule,
     MatTooltipModule,
-    MatSortModule
+    MatSortModule,
+    MatPaginatorModule
   ],
   templateUrl: './cartera.component.html',
   styleUrl: './cartera.component.scss'
@@ -88,6 +90,14 @@ export class CarteraComponent implements OnInit {
   readonly ordenClientes = signal<Sort>(sinOrden);
   readonly ordenRemisiones = signal<Sort>(sinOrden);
   readonly ordenEnvios = signal<Sort>(sinOrden);
+
+  // Paginación en la pantalla: los totales, el contador de "sin correo" y los envíos masivos
+  // necesitan todos los clientes, así que la API los manda completos y aquí solo se pinta una página.
+  readonly opcionesPagina = [25, 50, 100];
+  readonly paginaClientes = signal(0);
+  readonly tamanoClientes = signal(25);
+  readonly paginaEnvios = signal(0);
+  readonly tamanoEnvios = signal(25);
 
   readonly tarjetas = computed<Tarjeta[]>(() => {
     const t = this.cartera()?.totales;
@@ -121,6 +131,9 @@ export class CarteraComponent implements OnInit {
   readonly enviosOrdenados = computed(() =>
     this.ordenarLista(this.envios() ?? [], this.ordenEnvios(), (e, columna) => this.valorEnvio(e, columna))
   );
+
+  readonly clientesPagina = computed(() => this.pagina(this.clientesOrdenados(), this.paginaClientes(), this.tamanoClientes()));
+  readonly enviosPagina = computed(() => this.pagina(this.enviosOrdenados(), this.paginaEnvios(), this.tamanoEnvios()));
 
   readonly sinContacto = computed(() => this.cartera()?.clientes.filter((c) => !c.correosCobro).length ?? 0);
 
@@ -223,12 +236,13 @@ export class CarteraComponent implements OnInit {
     this.seleccion.set(nueva);
   }
 
-  abrirCliente(cliente: ClienteCarteraResumen): void {
+  // Sin correo de cobro abre directo donde se escribe; si ya tiene, en sus documentos.
+  abrirCliente(cliente: ClienteCarteraResumen, pestana?: 'documentos' | 'correo'): void {
     const ref = this.dialog.open(CarteraClienteDialogComponent, {
       width: '62rem',
       maxWidth: '96vw',
       autoFocus: false,
-      data: { nit: cliente.nit }
+      data: { nit: cliente.nit, pestana: pestana ?? (cliente.correosCobro ? 'documentos' : 'correo') }
     });
     ref.afterClosed().subscribe((cambio) => {
       if (cambio) this.cargar();
@@ -266,6 +280,34 @@ export class CarteraComponent implements OnInit {
     this.soloSinContacto.set(true);
     this.soloVencidos.set(false);
     this.busqueda.set('');
+    this.paginaClientes.set(0);
+  }
+
+  // Cualquier cambio de filtro u orden vuelve a la primera página.
+  filtrar(accion: () => void): void {
+    accion();
+    this.paginaClientes.set(0);
+  }
+
+  alPaginarClientes(e: PageEvent): void {
+    this.paginaClientes.set(e.pageIndex);
+    this.tamanoClientes.set(e.pageSize);
+  }
+
+  alPaginarEnvios(e: PageEvent): void {
+    this.paginaEnvios.set(e.pageIndex);
+    this.tamanoEnvios.set(e.pageSize);
+  }
+
+  correosDe(c: ClienteCarteraResumen): string[] {
+    return (c.correosCobro ?? '').split(';').map((x) => x.trim()).filter((x) => x);
+  }
+
+  private pagina<T>(lista: T[], indice: number, tamano: number): T[] {
+    // Si la lista se achicó (p. ej. tras un envío), no se queda en una página que ya no existe.
+    const ultima = Math.max(0, Math.ceil(lista.length / tamano) - 1);
+    const i = Math.min(indice, ultima);
+    return lista.slice(i * tamano, (i + 1) * tamano);
   }
 
   // Los vacíos (sin correo, nunca enviado) van siempre al final, en los dos sentidos.

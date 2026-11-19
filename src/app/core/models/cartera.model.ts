@@ -70,6 +70,8 @@ export interface ClienteCarteraDetalle {
   edades: EdadesCartera;
   documentos: DocumentoCartera[];
   envios: EnvioCartera[];
+  // Correo del cliente en el módulo Clientes (cotizaciones), solo de referencia.
+  correoModuloClientes: string | null;
 }
 
 export interface ContactoCobro {

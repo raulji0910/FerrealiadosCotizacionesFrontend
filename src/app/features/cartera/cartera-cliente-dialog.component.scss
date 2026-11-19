@@ -58,7 +58,69 @@
   }
 
   &__sin-correo {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0;
+    border: 0;
+    background: none;
+    font: inherit;
     color: #a06b00;
+    text-decoration: underline;
+    cursor: pointer;
+  }
+  &__tab-alerta {
+    margin-left: 0.35rem;
+    font-size: 1.1rem;
+    width: 1.1rem;
+    height: 1.1rem;
+    color: #a06b00;
+  }
+  &__sin-guardar {
+    margin-left: 0.35rem;
+    color: #ef6c00;
+  }
+  &__ayuda {
+    margin: 0 0 0.5rem;
+    font-size: 0.85rem;
+    color: var(--mat-sys-on-surface-variant);
+  }
+  &__referencias {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    min-width: 0;
+    flex: 1;
+  }
+  &__referencia {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.25rem 0.5rem;
+  }
+  &__origen {
+    padding: 0.05rem 0.5rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    background-color: var(--mat-sys-surface-container-highest);
+  }
+  &__ref-correo {
+    font-weight: 500;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  &__ya {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.15rem;
+    font-size: 0.8rem;
+    color: #2e7d32;
+
+    mat-icon {
+      font-size: 1rem;
+      width: 1rem;
+      height: 1rem;
+    }
   }
 
   &__resumen {
@@ -263,6 +325,8 @@
   &__guardar {
     display: flex;
     justify-content: flex-end;
+    align-items: center;
+    gap: 0.75rem;
     margin-top: 0.75rem;
   }
 
@@ -298,6 +362,20 @@
     gap: 0.5rem;
   }
 
+  &__motivo--enlace {
+    padding: 0;
+    border: 0;
+    background: none;
+    font: inherit;
+    font-size: 0.85rem;
+    text-align: left;
+    cursor: pointer;
+  }
+  &__enlace {
+    margin-left: 0.25rem;
+    font-weight: 500;
+    text-decoration: underline;
+  }
   &__motivo {
     display: inline-flex;
     align-items: center;

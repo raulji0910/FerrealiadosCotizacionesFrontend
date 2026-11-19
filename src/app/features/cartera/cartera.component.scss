@@ -270,12 +270,28 @@
     vertical-align: bottom;
   }
 
+  &__correos {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    min-width: 0;
+  }
+
   &__sin-contacto {
     display: inline-flex;
     align-items: center;
     gap: 0.25rem;
+    padding: 0.15rem 0;
+    border: 0;
+    background: none;
+    font: inherit;
     color: #a06b00;
     font-size: 0.85rem;
+    cursor: pointer;
+
+    &:hover {
+      text-decoration: underline;
+    }
 
     mat-icon {
       font-size: 1.1rem;

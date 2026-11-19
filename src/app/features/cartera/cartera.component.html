@@ -57,10 +57,10 @@
           <mat-form-field appearance="outline" subscriptSizing="dynamic" class="cartera__buscar">
             <mat-label>Cliente o NIT</mat-label>
             <mat-icon matPrefix>search</mat-icon>
-            <input matInput [ngModel]="busqueda()" (ngModelChange)="busqueda.set($event)" />
+            <input matInput [ngModel]="busqueda()" (ngModelChange)="filtrar(() => busqueda.set($event))" />
           </mat-form-field>
-          <mat-slide-toggle [checked]="soloVencidos()" (change)="soloVencidos.set($event.checked)">Solo con vencidos</mat-slide-toggle>
-          <mat-slide-toggle [checked]="soloSinContacto()" (change)="soloSinContacto.set($event.checked)">
+          <mat-slide-toggle [checked]="soloVencidos()" (change)="filtrar(() => soloVencidos.set($event.checked))">Solo con vencidos</mat-slide-toggle>
+          <mat-slide-toggle [checked]="soloSinContacto()" (change)="filtrar(() => soloSinContacto.set($event.checked))">
             Sin correo de cobro ({{ sinContacto() }})
           </mat-slide-toggle>
           <div class="cartera__acciones">
@@ -79,7 +79,7 @@
           @if (clientesFiltrados().length === 0) {
             <p class="cartera__vacio"><mat-icon>inbox</mat-icon> No hay clientes con estos filtros.</p>
           } @else {
-            <table mat-table [dataSource]="clientesOrdenados()" class="tabla-responsiva" matSort [matSortActive]="ordenClientes().active" [matSortDirection]="ordenClientes().direction" (matSortChange)="ordenClientes.set($event)">
+            <table mat-table [dataSource]="clientesPagina()" class="tabla-responsiva" matSort [matSortActive]="ordenClientes().active" [matSortDirection]="ordenClientes().direction" (matSortChange)="filtrar(() => ordenClientes.set($event))">
               <ng-container matColumnDef="seleccion">
                 <th mat-header-cell *matHeaderCellDef class="cartera__check">
                   <mat-checkbox [checked]="todosSeleccionados()" (change)="alternarTodos($event.checked)" aria-label="Seleccionar todos" />
@@ -126,9 +126,16 @@
                 <th mat-header-cell *matHeaderCellDef mat-sort-header>Correo de cobro</th>
                 <td mat-cell *matCellDef="let c" data-label="Correo de cobro">
                   @if (c.correosCobro) {
-                    <span class="cartera__correo" [matTooltip]="c.correosCobro">{{ c.correosCobro }}</span>
+                    <div class="cartera__correos">
+                      @for (correo of correosDe(c); track correo) {
+                        <span class="cartera__correo" [matTooltip]="correo">{{ correo }}</span>
+                      }
+                    </div>
                   } @else {
-                    <span class="cartera__sin-contacto"><mat-icon>warning</mat-icon> Sin correo</span>
+                    <button type="button" class="cartera__sin-contacto" (click)="$event.stopPropagation(); abrirCliente(c, 'correo')"
+                      matTooltip="Agregar el correo de cobro">
+                      <mat-icon>warning</mat-icon> Sin correo · agregar
+                    </button>
                   }
                 </td>
               </ng-container>
@@ -152,6 +159,17 @@
               <tr mat-header-row *matHeaderRowDef="columnasClientes"></tr>
               <tr mat-row *matRowDef="let c; columns: columnasClientes" class="cartera__fila" (click)="abrirCliente(c)"></tr>
             </table>
+            @if (clientesFiltrados().length > opcionesPagina[0]) {
+              <mat-paginator
+                [length]="clientesFiltrados().length"
+                [pageIndex]="paginaClientes()"
+                [pageSize]="tamanoClientes()"
+                [pageSizeOptions]="opcionesPagina"
+                (page)="alPaginarClientes($event)"
+                showFirstLastButtons
+                aria-label="Páginas de clientes"
+              />
+            }
           }
         </section>
         <p class="cartera__secundario">
@@ -269,7 +287,7 @@
         <p class="cartera__vacio"><mat-icon>outgoing_mail</mat-icon> Todavía no se ha enviado ningún estado de cuenta.</p>
       } @else {
         <section class="cartera__panel cartera__tabla">
-          <table mat-table [dataSource]="enviosOrdenados()" class="tabla-responsiva" matSort [matSortActive]="ordenEnvios().active" [matSortDirection]="ordenEnvios().direction" (matSortChange)="ordenEnvios.set($event)">
+          <table mat-table [dataSource]="enviosPagina()" class="tabla-responsiva" matSort [matSortActive]="ordenEnvios().active" [matSortDirection]="ordenEnvios().direction" (matSortChange)="ordenEnvios.set($event); paginaEnvios.set(0)">
             <ng-container matColumnDef="fecha">
               <th mat-header-cell *matHeaderCellDef mat-sort-header>Fecha</th>
               <td mat-cell *matCellDef="let e" data-label="Fecha">{{ e.fecha + 'Z' | date: 'dd/MM/yy h:mm a' }}</td>
@@ -310,6 +328,17 @@
             <tr mat-header-row *matHeaderRowDef="columnasEnvios"></tr>
             <tr mat-row *matRowDef="let e; columns: columnasEnvios"></tr>
           </table>
+          @if (envios()!.length > opcionesPagina[0]) {
+            <mat-paginator
+              [length]="envios()!.length"
+              [pageIndex]="paginaEnvios()"
+              [pageSize]="tamanoEnvios()"
+              [pageSizeOptions]="opcionesPagina"
+              (page)="alPaginarEnvios($event)"
+              showFirstLastButtons
+              aria-label="Páginas de envíos"
+            />
+          }
         </section>
       }
     </mat-tab>

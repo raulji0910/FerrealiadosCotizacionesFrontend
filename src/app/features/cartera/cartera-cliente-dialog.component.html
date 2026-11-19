@@ -8,7 +8,9 @@
         @if (d.correosCobro) {
           <span><mat-icon>mail</mat-icon>{{ d.correosCobro }}</span>
         } @else {
-          <span class="cliente__sin-correo"><mat-icon>warning</mat-icon>Sin correo de cobro</span>
+          <button type="button" class="cliente__sin-correo" (click)="irACorreo()">
+            <mat-icon>warning</mat-icon>Sin correo de cobro: agregar
+          </button>
         }
         @if (d.contacto) {
           <span><mat-icon>person</mat-icon>{{ d.contacto }}</span>
@@ -68,7 +70,7 @@
       }
     </section>
 
-    <mat-tab-group mat-stretch-tabs="false" animationDuration="0ms">
+    <mat-tab-group mat-stretch-tabs="false" animationDuration="0ms" [selectedIndex]="pestana()" (selectedIndexChange)="pestana.set($event)">
       <mat-tab label="Documentos ({{ d.documentos.length }})">
         <div class="cliente__tabla-contenedor">
           <table class="cliente__tabla">
@@ -112,40 +114,68 @@
         </div>
       </mat-tab>
 
-      <mat-tab label="Correo de cobro">
+      <mat-tab>
+        <ng-template mat-tab-label>
+          Correo de cobro
+          @if (hayCambios()) {
+            <span class="cliente__sin-guardar" matTooltip="Hay cambios sin guardar">●</span>
+          } @else if (!d.correosCobro) {
+            <mat-icon class="cliente__tab-alerta">warning</mat-icon>
+          }
+        </ng-template>
         <div class="cliente__form">
-          <mat-form-field appearance="outline">
-            <mat-label>Correos de cobro</mat-label>
-            <textarea matInput rows="3" [(ngModel)]="correosCobro" placeholder="tesoreria@cliente.com; pagos@cliente.com"></textarea>
-            <mat-hint>Uno o varios, separados por punto y coma. A estos se envía el estado de cuenta.</mat-hint>
-          </mat-form-field>
+          <p class="cliente__ayuda">
+            El estado de cuenta se envía al correo de cobro y, si lo hay, también al segundo correo.
+          </p>
+          <div class="cliente__fila-form">
+            <mat-form-field appearance="outline">
+              <mat-label>Correo de cobro</mat-label>
+              <input #campoCorreo matInput type="email" name="correo1" [ngModel]="correo1()" (ngModelChange)="correo1.set($event)" (keydown.enter)="guardarContacto()" />
+              <mat-icon matPrefix>mail</mat-icon>
+              <mat-hint>Ej.: tesoreria&#64;cliente.com</mat-hint>
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Segundo correo (opcional)</mat-label>
+              <input matInput type="email" name="correo2" [ngModel]="correo2()" (ngModelChange)="correo2.set($event)" (keydown.enter)="guardarContacto()" />
+              <mat-icon matPrefix>alternate_email</mat-icon>
+            </mat-form-field>
+          </div>
           <div class="cliente__fila-form">
             <mat-form-field appearance="outline">
               <mat-label>Persona de contacto</mat-label>
-              <input matInput [(ngModel)]="contacto" />
+              <input matInput name="contacto" [ngModel]="contacto()" (ngModelChange)="contacto.set($event)" />
             </mat-form-field>
             <mat-form-field appearance="outline">
               <mat-label>Teléfono</mat-label>
-              <input matInput [(ngModel)]="telefono" />
+              <input matInput name="telefono" [ngModel]="telefono()" (ngModelChange)="telefono.set($event)" />
             </mat-form-field>
           </div>
 
           <div class="cliente__wo">
             <mat-icon>info</mat-icon>
-            <div>
-              <strong>Correos en World Office</strong> (son los de facturación, solo de referencia):
-              {{ d.correosWorldOffice || 'no tiene' }}
-              @if (d.correosWorldOffice) {
-                <button mat-button (click)="usarCorreosWorldOffice()">
-                  <mat-icon>content_copy</mat-icon>
-                  Agregarlos a cobro
-                </button>
+            <div class="cliente__referencias">
+              <span>Correos que este cliente tiene en otras partes (solo de referencia):</span>
+              @for (r of referencias(); track r.correo) {
+                <div class="cliente__referencia">
+                  <span class="cliente__origen">{{ r.origen }}</span>
+                  <span class="cliente__ref-correo">{{ r.correo }}</span>
+                  @if (yaEsta(r.correo)) {
+                    <span class="cliente__ya"><mat-icon>check</mat-icon> Ya está</span>
+                  } @else {
+                    <button mat-button type="button" (click)="usar(r.correo)" [disabled]="!!correo1().trim() && !!correo2().trim()"
+                      [matTooltip]="correo1().trim() && correo2().trim() ? 'Ya hay dos correos: borra uno para usar este' : ''">
+                      <mat-icon>add</mat-icon> Usar este
+                    </button>
+                  }
+                </div>
+              } @empty {
+                <span class="cliente__secundario">No tiene correo ni en World Office ni en el módulo Clientes.</span>
               }
             </div>
           </div>
 
           <div class="cliente__guardar">
-            <button mat-flat-button (click)="guardarContacto()" [disabled]="guardando()">
+            <button mat-flat-button (click)="guardarContacto()" [disabled]="guardando() || !hayCambios()">
               <mat-icon>save</mat-icon>
               {{ guardando() ? 'Guardando…' : 'Guardar' }}
             </button>
@@ -206,13 +236,21 @@
 </mat-dialog-content>
 
 <mat-dialog-actions class="cliente__acciones">
-  @if (correo()?.noSePuedeEnviar; as motivo) {
-    <span class="cliente__motivo"><mat-icon>block</mat-icon> {{ motivo }}</span>
+  @if (hayCambios()) {
+    <span class="cliente__motivo"><mat-icon>edit_note</mat-icon> Hay cambios sin guardar en el correo de cobro.</span>
+  } @else if (correo()?.noSePuedeEnviar; as motivo) {
+    @if (detalle() && !detalle()!.correosCobro) {
+      <button type="button" class="cliente__motivo cliente__motivo--enlace" (click)="irACorreo()">
+        <mat-icon>block</mat-icon> {{ motivo }} <span class="cliente__enlace">Agregar correo</span>
+      </button>
+    } @else {
+      <span class="cliente__motivo"><mat-icon>block</mat-icon> {{ motivo }}</span>
+    }
   }
   <span class="cliente__espacio"></span>
   <button mat-button (click)="cerrar()">Cerrar</button>
-  <button mat-flat-button (click)="enviar()" [disabled]="!correo() || !!correo()?.noSePuedeEnviar || enviando()">
+  <button mat-flat-button (click)="enviar()" [disabled]="!puedeEnviar()">
     <mat-icon>send</mat-icon>
-    {{ enviando() ? 'Enviando…' : 'Enviar estado de cuenta' }}
+    {{ enviando() ? 'Enviando…' : hayCambios() ? 'Guardar y enviar' : 'Enviar estado de cuenta' }}
   </button>
 </mat-dialog-actions>
