@@ -24,26 +24,33 @@
     </mat-form-field>
   }
 
-  <mat-form-field appearance="outline" class="dialogo-form__campo">
-    <mat-label>Rol</mat-label>
-    <mat-select [(ngModel)]="rol" name="rol" [disabled]="esUsuarioActual">
-      <mat-option value="Admin">Administrador</mat-option>
-      <mat-option value="Cotizador">Cotizador</mat-option>
-      <mat-option value="Conciliador">Conciliador (solo conciliación)</mat-option>
-      <mat-option value="Cartera">Cartera (solo cartera de clientes)</mat-option>
-    </mat-select>
-  </mat-form-field>
+  <fieldset class="usuario-form__roles">
+    <legend>Roles <small>(ve la suma de todos los que marques)</small></legend>
+    @for (r of opcionesRol; track r.valor) {
+      <mat-checkbox
+        [checked]="tieneRol(r.valor)"
+        (change)="alternarRol(r.valor, $event.checked)"
+        [disabled]="esUsuarioActual && r.valor === 'Admin'"
+      >
+        <span class="usuario-form__rol">{{ r.titulo }}</span>
+        <small class="usuario-form__rol-ayuda">{{ r.ayuda }}</small>
+      </mat-checkbox>
+    }
+    @if (roles.length === 0) {
+      <p class="usuario-form__error">Marca al menos un rol.</p>
+    }
+  </fieldset>
 
   @if (editando) {
     <mat-slide-toggle [(ngModel)]="activo" [disabled]="esUsuarioActual">Activo</mat-slide-toggle>
   }
 
   @if (esUsuarioActual) {
-    <p class="usuario-form__nota">No puedes cambiar tu propio rol ni desactivar tu propio usuario.</p>
+    <p class="usuario-form__nota">No puedes quitarte el rol de Administrador ni desactivar tu propio usuario.</p>
   }
 </mat-dialog-content>
 
 <mat-dialog-actions align="end">
   <button mat-button (click)="cancelar()">Cancelar</button>
-  <button mat-flat-button color="primary" (click)="guardar()">Guardar</button>
+  <button mat-flat-button color="primary" (click)="guardar()" [disabled]="roles.length === 0">Guardar</button>
 </mat-dialog-actions>

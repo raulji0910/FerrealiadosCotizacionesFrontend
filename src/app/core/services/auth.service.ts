@@ -5,6 +5,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { Observable, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { LoginRequest, LoginResponse } from '../models/auth.model';
+import { Rol } from '../models/usuario.model';
 
 const CLAVE_STORAGE = 'ferrealiados.sesion';
 
@@ -52,25 +53,40 @@ export class AuthService {
     return this.sesion() !== null;
   }
 
+  // Multirol: el usuario ve la suma de lo que permiten todos sus roles.
+  tieneRol(rol: Rol): boolean {
+    return this.sesion()?.roles?.includes(rol) ?? false;
+  }
+
   get esAdmin(): boolean {
-    return this.sesion()?.rol === 'Admin';
+    return this.tieneRol('Admin');
   }
 
-  // El Conciliador solo entra al módulo de conciliación; no ve productos, cotizaciones, etc.
-  get esConciliador(): boolean {
-    return this.sesion()?.rol === 'Conciliador';
+  // Productos, proveedores, clientes, cotizaciones y alertas.
+  get puedeCotizar(): boolean {
+    return this.tieneRol('Admin') || this.tieneRol('Cotizador');
   }
 
-  // El rol Cartera solo entra al módulo de cartera de clientes.
-  get esCartera(): boolean {
-    return this.sesion()?.rol === 'Cartera';
+  // Conciliación de facturas de proveedor (ver). Cargar ZIP y escribir observaciones: Admin y Conciliador.
+  get puedeVerConciliacion(): boolean {
+    return this.tieneRol('Admin') || this.tieneRol('Cotizador') || this.tieneRol('Conciliador');
+  }
+
+  get puedeGestionarConciliacion(): boolean {
+    return this.tieneRol('Admin') || this.tieneRol('Conciliador');
+  }
+
+  // Cartera de clientes.
+  get puedeVerCartera(): boolean {
+    return this.tieneRol('Admin') || this.tieneRol('Cartera');
   }
 
   // Pantalla a la que se llega al entrar o cuando se intenta abrir una sin permiso.
   get rutaInicio(): string {
-    if (this.esConciliador) return '/conciliacion';
-    if (this.esCartera) return '/cartera';
-    return '/productos';
+    if (this.puedeCotizar) return '/productos';
+    if (this.puedeVerConciliacion) return '/conciliacion';
+    if (this.puedeVerCartera) return '/cartera';
+    return '/login';
   }
 
   private leerSesionValida(): LoginResponse | null {
@@ -84,6 +100,8 @@ export class AuthService {
         localStorage.removeItem(CLAVE_STORAGE);
         return null;
       }
+      // Sesión guardada antes del multirol: traía un solo 'rol'.
+      if (!Array.isArray(sesion.roles)) sesion.roles = sesion.rol ? [sesion.rol] : [];
       return sesion;
     } catch {
       return null;

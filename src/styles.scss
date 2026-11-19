@@ -115,3 +115,41 @@ body {
     }
   }
 }
+
+// Roles (multirol) en el formulario de usuario.
+.usuario-form__roles {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  margin: 0.25rem 0 0.75rem;
+  padding: 0.5rem 0.75rem 0.75rem;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 8px;
+
+  legend {
+    padding: 0 0.35rem;
+    font-weight: 500;
+
+    small {
+      font-weight: 400;
+      color: var(--mat-sys-on-surface-variant);
+    }
+  }
+
+  .mdc-label {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.3;
+  }
+}
+
+.usuario-form__rol-ayuda {
+  font-size: 0.75rem;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.usuario-form__error {
+  margin: 0.25rem 0 0;
+  font-size: 0.8rem;
+  color: var(--mat-sys-error);
+}

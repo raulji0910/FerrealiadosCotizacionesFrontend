@@ -3,7 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatButtonModule } from '@angular/material/button';
 import { AuthService } from '../../core/services/auth.service';
@@ -21,7 +21,7 @@ export interface UsuarioFormDialogData {
     MatDialogModule,
     MatFormFieldModule,
     MatInputModule,
-    MatSelectModule,
+    MatCheckboxModule,
     MatSlideToggleModule,
     MatButtonModule
   ],
@@ -37,18 +37,33 @@ export class UsuarioFormDialogComponent {
 
   nombre = this.data.usuario?.nombre ?? '';
   email = this.data.usuario?.email ?? '';
-  rol: Rol = this.data.usuario?.rol ?? 'Cotizador';
+  roles: Rol[] = [...(this.data.usuario?.roles ?? ['Cotizador'])];
+
+  readonly opcionesRol: { valor: Rol; titulo: string; ayuda: string }[] = [
+    { valor: 'Admin', titulo: 'Administrador', ayuda: 'Todo, incluidos usuarios y configuración' },
+    { valor: 'Cotizador', titulo: 'Cotizador', ayuda: 'Productos, proveedores, clientes y cotizaciones; consulta conciliación' },
+    { valor: 'Conciliador', titulo: 'Conciliador', ayuda: 'Conciliación de facturas: carga ZIP y escribe observaciones' },
+    { valor: 'Cartera', titulo: 'Cartera', ayuda: 'Cartera de clientes: estados de cuenta y remisiones sin factura' }
+  ];
   activo = this.data.usuario?.activo ?? true;
   password = '';
   nuevaPassword = '';
 
+  tieneRol(rol: Rol): boolean {
+    return this.roles.includes(rol);
+  }
+
+  alternarRol(rol: Rol, marcado: boolean): void {
+    this.roles = marcado ? [...this.roles.filter((r) => r !== rol), rol] : this.roles.filter((r) => r !== rol);
+  }
+
   guardar(): void {
-    if (!this.nombre || (!this.editando && (!this.email || !this.password))) return;
+    if (!this.nombre || this.roles.length === 0 || (!this.editando && (!this.email || !this.password))) return;
 
     if (this.editando) {
       const dto: UsuarioActualizar = {
         nombre: this.nombre,
-        rol: this.rol,
+        roles: this.roles,
         activo: this.activo,
         nuevaPassword: this.nuevaPassword || null
       };
@@ -58,7 +73,7 @@ export class UsuarioFormDialogComponent {
         nombre: this.nombre,
         email: this.email,
         password: this.password,
-        rol: this.rol
+        roles: this.roles
       };
       this.dialogRef.close(dto);
     }

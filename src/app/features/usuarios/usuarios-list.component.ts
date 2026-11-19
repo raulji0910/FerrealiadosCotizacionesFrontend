@@ -35,8 +35,8 @@ export class UsuariosListComponent implements OnInit {
     private readonly snackBar: MatSnackBar
   ) {}
 
-  etiquetaRol(rol: Rol): string {
-    return this.etiquetasRol[rol];
+  etiquetaRoles(roles: Rol[]): string {
+    return roles.map((r) => this.etiquetasRol[r]).join(', ');
   }
 
   ngOnInit(): void {

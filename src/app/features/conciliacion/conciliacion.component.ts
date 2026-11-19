@@ -269,7 +269,7 @@ export class ConciliacionComponent implements OnInit {
     private readonly dialog: MatDialog,
     auth: AuthService
   ) {
-    this.puedeCargar = auth.esAdmin || auth.esConciliador;
+    this.puedeCargar = auth.puedeGestionarConciliacion;
     this.hasta = new Date();
     this.desde = new Date();
     this.desde.setDate(this.desde.getDate() - 30);

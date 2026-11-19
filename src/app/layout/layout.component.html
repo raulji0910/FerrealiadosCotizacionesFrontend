@@ -5,7 +5,7 @@
     </div>
 
     <mat-nav-list>
-      @if (!esConciliador && !esCartera) {
+      @if (puedeCotizar) {
         <a mat-list-item routerLink="/productos" routerLinkActive="activo" (click)="esMovil() && sidenav.close()">
           <mat-icon matListItemIcon>inventory_2</mat-icon>
           <span matListItemTitle>Productos</span>
@@ -27,13 +27,13 @@
           <span matListItemTitle>Cotizaciones</span>
         </a>
       }
-      @if (!esCartera) {
+      @if (puedeVerConciliacion) {
         <a mat-list-item routerLink="/conciliacion" routerLinkActive="activo" (click)="esMovil() && sidenav.close()">
           <mat-icon matListItemIcon>fact_check</mat-icon>
           <span matListItemTitle>Conciliación</span>
         </a>
       }
-      @if (esAdmin || esCartera) {
+      @if (puedeVerCartera) {
         <a mat-list-item routerLink="/cartera" routerLinkActive="activo" (click)="esMovil() && sidenav.close()">
           <mat-icon matListItemIcon>account_balance_wallet</mat-icon>
           <span matListItemTitle>Cartera</span>

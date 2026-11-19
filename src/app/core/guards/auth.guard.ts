@@ -12,46 +12,26 @@ export const authGuard: CanActivateFn = () => {
   return false;
 };
 
-export const adminGuard: CanActivateFn = () => {
-  const authService = inject(AuthService);
-  const router = inject(Router);
+// Multirol: cada guard pregunta por el permiso, no por un rol único (el usuario ve la suma).
+function permitir(condicion: (auth: AuthService) => boolean): CanActivateFn {
+  return () => {
+    const authService = inject(AuthService);
+    const router = inject(Router);
 
-  if (authService.esAdmin) return true;
+    if (condicion(authService)) return true;
 
-  router.navigate([authService.rutaInicio]);
-  return false;
-};
+    router.navigate([authService.rutaInicio]);
+    return false;
+  };
+}
 
-// Módulos de cotización (productos, proveedores, clientes, cotizaciones, alertas): todos menos el
-// Conciliador y Cartera, que solo ven su módulo.
-export const cotizacionGuard: CanActivateFn = () => {
-  const authService = inject(AuthService);
-  const router = inject(Router);
+export const adminGuard = permitir((a) => a.esAdmin);
 
-  if (!authService.esConciliador && !authService.esCartera) return true;
+// Módulos de cotización (productos, proveedores, clientes, cotizaciones, alertas).
+export const cotizacionGuard = permitir((a) => a.puedeCotizar);
 
-  router.navigate([authService.rutaInicio]);
-  return false;
-};
+// Conciliación de facturas de proveedor.
+export const conciliacionGuard = permitir((a) => a.puedeVerConciliacion);
 
-// Conciliación de facturas de proveedor: todos menos el rol Cartera.
-export const conciliacionGuard: CanActivateFn = () => {
-  const authService = inject(AuthService);
-  const router = inject(Router);
-
-  if (!authService.esCartera) return true;
-
-  router.navigate([authService.rutaInicio]);
-  return false;
-};
-
-// Cartera de clientes: Administrador y rol Cartera.
-export const carteraGuard: CanActivateFn = () => {
-  const authService = inject(AuthService);
-  const router = inject(Router);
-
-  if (authService.esAdmin || authService.esCartera) return true;
-
-  router.navigate([authService.rutaInicio]);
-  return false;
-};
+// Cartera de clientes.
+export const carteraGuard = permitir((a) => a.puedeVerCartera);
